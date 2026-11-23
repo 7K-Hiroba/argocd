@@ -23,8 +23,8 @@ spec:
         command: [sh, -c]
         args:
           - >-
-            curl --fail --silent --show-error --max-time 10 http://argocd-server.default.svc:80/healthz &&
-            curl --fail --silent --show-error --max-time 10 http://argocd-server.default.svc:80/api/version |
+            curl --fail --silent --show-error --max-time 10 --location --insecure http://argocd-server.default.svc:80/healthz &&
+            curl --fail --silent --show-error --max-time 10 --location --insecure http://argocd-server.default.svc:80/api/version |
             grep -q '"Version"'
         securityContext:
           runAsNonRoot: true
