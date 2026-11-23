@@ -6,7 +6,7 @@ import { HealthBadge } from './ClusterTab';
  * live health when the catalog entry carries it in uiHints. */
 export function ArgoCDDeliveryBadge({ catalogItem }: CatalogCardSlotProps) {
   const hints = catalogItem.uiHints ?? {};
-  if (hints['inari.io/gitops'] !== 'argocd') {
+  if (hints['inari.io/gitops'] !== 'argocd' && catalogItem.name !== 'argocd') {
     return null;
   }
   const health = hints['inari.io/health'] as string | undefined;

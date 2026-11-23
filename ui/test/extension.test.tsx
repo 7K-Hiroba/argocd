@@ -227,4 +227,13 @@ describe('components', () => {
     expect(on).toContain('GitOps · ArgoCD');
     expect(on).toContain('Healthy');
   });
+
+  it('CatalogCard identifies the ArgoCD application even when summary hints are unavailable', () => {
+    const on = renderToStaticMarkup(
+      createElement(ArgoCDDeliveryBadge, {
+        catalogItem: { id: 'cat-argocd', name: 'argocd', source: 'platform', version: '7.6.12' },
+      }),
+    );
+    expect(on).toContain('GitOps · ArgoCD');
+  });
 });
