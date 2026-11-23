@@ -1,5 +1,5 @@
 {
-  "title": "Workflows scaffold overview",
+  "title": "Argo CD overview",
   "uid": "argocd-overview",
   "schemaVersion": 40,
   "templating": {
@@ -7,7 +7,7 @@
       {
         "name": "namespace",
         "type": "textbox",
-        "value": "default"
+        "value": "argocd"
       },
       {
         "name": "DS_PROMETHEUS",
@@ -21,14 +21,26 @@
     {
       "id": 1,
       "type": "timeseries",
-      "title": "Synthetic availability",
-      "description": "Current value of the synthetic argocd availability gauge.",
+      "title": "Degraded applications",
+      "description": "Applications reporting Degraded health in the selected namespace.",
       "fieldConfig": {"defaults": {"unit": "short"}},
       "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
       "targets": [
-        {"refId": "A", "expr": "workflows_scaffold_up"}
+        {"refId": "A", "expr": "sum by(namespace)(argocd_app_info{namespace=\"$namespace\",health_status=\"Degraded\"})"}
       ],
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Out-of-sync applications",
+      "description": "Applications not reporting Synced status in the selected namespace.",
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {"refId": "A", "expr": "sum by(namespace)(argocd_app_info{namespace=\"$namespace\",sync_status!=\"Synced\"})"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
     }
   ]
 }

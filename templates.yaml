@@ -2,10 +2,11 @@
 apiVersion: inari.dev/v1alpha1
 kind: TemplateIndex
 templates:
-- name: argocd
+- name: argocd-application
   version: 0.1.0
   channel: incubating
-  description: Minimal component scaffold for argocd
+  description: Scaffold a reviewed native ArgoCD Application manifest without deploying
+    it
   kind: component
-  ociRef: ghcr.io/7k-hiroba/argocd/templates/argocd:0.1.0
-  channelRef: ghcr.io/7k-hiroba/argocd/templates/argocd:incubating
+  ociRef: ghcr.io/7k-hiroba/argocd/templates/argocd-application:0.1.0
+  channelRef: ghcr.io/7k-hiroba/argocd/templates/argocd-application:incubating

@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-# Render test for the argocd platform app.
+# Render and validate the first-party Argo CD chart package.
 set -euo pipefail
-cd "$(dirname "$0")/.."
+PACKAGE_DIR=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$PACKAGE_DIR/../.." && pwd)
+CHART="$ROOT/charts/argocd"
+RENDERED=$(mktemp)
+trap 'rm -f "$RENDERED"' EXIT
 
-version=$(grep -A2 '^channels:' chart.yaml | awk '/stable:/ {gsub(/"/,"",$2); print $2}')
-[ -n "$version" ] || { echo "no stable channel version"; exit 1; }
-
-helm repo add inari-test-argo https://argoproj.github.io/argo-helm >/dev/null 2>&1 || true
-# ServiceMonitor templates are gated on .Capabilities.APIVersions.Has
-# "monitoring.coreos.com/v1"; declare it so helm template renders them.
-helm template argocd inari-test-argo/argo-cd \
-  --version "$version" --namespace argocd \
+helm dependency build "$CHART" >/dev/null
+helm template argocd "$CHART" --namespace argocd \
   --api-versions monitoring.coreos.com/v1 \
-  -f values-defaults.yaml > /tmp/argocd-render.yaml
-
-grep -q 'argocd-server' /tmp/argocd-render.yaml
-grep -q 'argocd-repo-server' /tmp/argocd-render.yaml
-grep -q 'kind: ServiceMonitor' /tmp/argocd-render.yaml
-grep -q 'kind: StatefulSet' /tmp/argocd-render.yaml
+  --values "$PACKAGE_DIR/values-defaults.yaml" > "$RENDERED"
+grep -q 'argocd-server' "$RENDERED"
+grep -q 'argocd-repo-server' "$RENDERED"
+grep -q 'kind: ServiceMonitor' "$RENDERED"
+grep -q 'kind: StatefulSet' "$RENDERED"
+! grep -q 'inari-operator' "$RENDERED"
+"${HIROBA_PYTHON:-python3}" -c 'import json,sys,jsonschema; schema=json.load(open(sys.argv[1])); values=__import__("yaml").safe_load(open(sys.argv[2])); jsonschema.validate(values,schema)' "$PACKAGE_DIR/values.schema.json" "$PACKAGE_DIR/values-defaults.yaml"
 echo "argocd (platform-app): OK"

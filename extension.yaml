@@ -1,18 +1,12 @@
-# Extension manifest registered with the control plane (plan §5.9 Extension
-# entity, §8.4 slots). The control plane validates it on install; keep in sync
-# with the plugin's registered actions and the UI remote's slots.
 apiVersion: inari.io/v1alpha1
 kind: Extension
 metadata:
   name: inari-ext-argocd
 spec:
-  # version is stamped by release-please tags: v* (backend) / ui-v* (UI).
   version: "0.1.1" # x-release-please-version
   kinds: [backend, ui]
-
   backend:
-    image: ghcr.io/7k-inari/inari-ext-argocd
-    # Image tag = backend release tag (v<version>); cosign keyless-signed.
+    image: ghcr.io/7k-hiroba/argocd/extension
     digestPinning: required
     actions:
       - argocd.sync
@@ -20,34 +14,35 @@ spec:
       - argocd.rollback
       - argocd.resource-action
     env:
-      - name: INARI_AGENT_GATEWAY_ADDR
-        description: Control plane Agent Gateway endpoint injected by the Extension Host.
+      - name: INARI_AGENT_GATEWAY_URL
+        description: Absolute control-plane HTTP(S) URL used by the public Agent Gateway client.
+      - name: INARI_EXTENSION_CLIENT_ID
+        description: Dedicated extension client ID returned by registration or rotation.
+      - name: INARI_EXTENSION_CLIENT_SECRET
+        description: One-time extension client secret supplied through deployment secret machinery.
+      - name: INARI_EXTENSION_TOKEN_URL
+        description: OIDC client-credentials token endpoint for the dedicated extension identity.
       - name: INARI_MANAGED_PROJECTS
         value: inari
-
+      - name: INARI_ACTION_TIMEOUT
+        value: 60s
   ui:
-    # remoteEntry.js is attached to the ui-v* GitHub Release; the control
-    # plane serves it to the Module Federation host.
-    remoteEntry: https://github.com/7K-Inari/inari-ext-argocd/releases/download/ui-v0.1.0/remoteEntry.js # x-release-please-version
+    remoteEntryOci: ghcr.io/7k-hiroba/argocd/extension-ui
     slots:
       - { kind: cluster-tab, name: argocd-health }
       - { kind: catalog-card, name: argocd-badge }
       - { kind: instance-action, name: argocd-sync }
       - { kind: instance-action, name: argocd-refresh }
       - { kind: instance-action, name: argocd-rollback }
-
-  # Downstream auth declaration (plan §5.8, plugin.v1 AuthMethod): the
-  # control plane resolves the caller's per-user ArgoCD SSO session
-  # (oidc-sso-session; `audience` names the session provider key) and
-  # injects it as connection metadata. Credentials never travel inside
-  # AuthContext; missing/expired sessions fail closed with a re-auth signal.
+  contracts:
+    backend: [inari.plugin.v1]
+    ui:
+      sdk: ">=0.1.9 <2.0.0"
+      hostApi: inari.ui.v1
   auth:
     methods:
       - type: oidc-sso-session
         audience: argocd
         isDefault: true
-
-  # RBAC surface (plan §5.8): the control plane requires callers to hold
-  # `extensions, invoke, inari-ext-argocd` before proxying any action.
   permissions:
     - extensions:invoke:inari-ext-argocd

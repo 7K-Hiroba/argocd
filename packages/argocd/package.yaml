@@ -3,6 +3,9 @@ channel: stable
 type: platform-app
 target: platform
 description: >-
-  ArgoCD on the platform cluster: tenant-local GitOps root apps and shared
-  ArgoCD projects (platform-scoped, reconciled by inari-operator, §5.6).
+  Argo CD for tenant-local GitOps root applications and native AppProjects,
+  delivered through the source-agnostic renderer and first-class addon flow.
 category: platform
+observability:
+  package: observability-pack
+  versionRange: ">=0.1.0 <2.0.0"

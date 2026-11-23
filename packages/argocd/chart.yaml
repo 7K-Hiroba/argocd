@@ -1,6 +1,6 @@
-repoURL: https://argoproj.github.io/argo-helm
-chart: argo-cd
+repoURL: oci://ghcr.io/7k-hiroba/argocd/charts
+chart: argocd
 namespace: argocd
 channels:
-  stable: "7.6.12"
-  incubating: "7.6.12"
+  stable: "0.1.0"
+  incubating: "0.1.0"

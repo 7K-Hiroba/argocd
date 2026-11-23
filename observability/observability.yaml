@@ -6,12 +6,14 @@ datasources:
   prometheus: ${DS_PROMETHEUS}
 linkVariables: [namespace]
 dashboards:
-  - title: Overview
+  - title: Argo CD overview
     uid: argocd-overview
     file: dashboards/overview.json
 rules:
   - file: rules/app.yaml
     evaluation: central
+  - file: rules/client.yaml
+    evaluation: local
 targets: [central, local]
 severityRouting:
   critical: platform-security

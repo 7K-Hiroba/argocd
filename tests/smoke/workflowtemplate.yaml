@@ -23,9 +23,9 @@ spec:
         command: [sh, -c]
         args:
           - >-
-            curl --fail --silent --show-error --max-time 10 http://argocd.default.svc:8080/healthz &&
-            curl --fail --silent --show-error --max-time 10 http://argocd.default.svc:8080/api/ping |
-            grep -q '"status":"ok"'
+            curl --fail --silent --show-error --max-time 10 http://argocd-server.default.svc:80/healthz &&
+            curl --fail --silent --show-error --max-time 10 http://argocd-server.default.svc:80/api/version |
+            grep -q '"Version"'
         securityContext:
           runAsNonRoot: true
           runAsUser: 100
@@ -33,3 +33,4 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities: {drop: [ALL]}
+          seccompProfile: {type: RuntimeDefault}

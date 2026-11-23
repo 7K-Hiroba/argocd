@@ -1,7 +1,7 @@
 apiVersion: kro.run/v1alpha1
 kind: ObservabilityPack
 metadata:
-  name: scaffold
+  name: argocd
   namespace: default
 spec:
   org: ci

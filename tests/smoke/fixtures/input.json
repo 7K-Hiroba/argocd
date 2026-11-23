@@ -1,4 +1,4 @@
 {
-  "journey": "health-and-read-only-ping",
-  "expected": {"status": "ok"}
+  "journey": "argocd-health-and-version",
+  "expected": {"health": "ok", "versionField": "Version"}
 }

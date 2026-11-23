@@ -1,0 +1,8 @@
+{
+  "name": {"ui:help": "DNS-compatible Application name"},
+  "repoURL": {"ui:help": "HTTPS Git repository URL"},
+  "revision": {"ui:help": "Explicit Git revision; never HEAD or latest"},
+  "path": {"ui:help": "Confined manifest path within the repository"},
+  "destinationNamespace": {"ui:help": "Destination namespace for the application"},
+  "project": {"ui:help": "Existing ArgoCD AppProject name"}
+}

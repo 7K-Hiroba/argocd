@@ -4,22 +4,58 @@ rule_files:
 tests:
   - interval: 1m
     input_series:
-      - series: 'workflows_scaffold_up{job="argocd"}'
-        values: '1 1 1 1 0 0 0 0 0 0 0'
+      - series: 'argocd_app_info{org="ci",cluster="kind-ci",job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"}'
+        values: '1 1 1 1 1 1 1 1 1 1 1'
     promql_expr_test:
-      - expr: workflows_scaffold:up:sum
+      - expr: argocd:applications:degraded
         eval_time: 0m
         exp_samples:
-          - labels: 'workflows_scaffold:up:sum'
+          - labels: 'argocd:applications:degraded{org="ci",cluster="kind-ci",job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"}'
+            value: 1
+      - expr: argocd:applications:out_of_sync
+        eval_time: 0m
+        exp_samples:
+          - labels: 'argocd:applications:out_of_sync{org="ci",cluster="kind-ci",job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"}'
             value: 1
     alert_rule_test:
       - eval_time: 10m
-        alertname: WorkflowsScaffoldDown
+        alertname: ArgoCDApplicationDegraded
         exp_alerts:
           - exp_labels:
-              alertname: WorkflowsScaffoldDown
+              alertname: ArgoCDApplicationDegraded
               app: argocd
+              org: ci
+              cluster: kind-ci
               job: argocd
+              instance: ci
+              namespace: argocd
+              health_status: Degraded
+              sync_status: OutOfSync
               severity: critical
             exp_annotations:
-              summary: Synthetic argocd target is down
+              summary: One or more Argo CD applications are Degraded
+      - eval_time: 10m
+        alertname: ArgoCDApplicationOutOfSync
+        exp_alerts:
+          - exp_labels:
+              alertname: ArgoCDApplicationOutOfSync
+              app: argocd
+              org: ci
+              cluster: kind-ci
+              job: argocd
+              instance: ci
+              namespace: argocd
+              health_status: Degraded
+              sync_status: OutOfSync
+              severity: critical
+            exp_annotations:
+              summary: One or more Argo CD applications are out of sync
+  - interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDApplicationDegraded
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: ArgoCDApplicationOutOfSync
+        exp_alerts: []

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["argo-cd", "observability"],
+  "additionalProperties": false,
+  "properties": {
+    "argo-cd": {
+      "type": "object",
+      "description": "Values forwarded to the locked first-party OCI chart's upstream dependency."
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "rules"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {"enabled": {"type": "boolean"}}
+        }
+      }
+    }
+  }
+}

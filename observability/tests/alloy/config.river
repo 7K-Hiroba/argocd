@@ -1,8 +1,9 @@
-// Real Alloy pipeline fixture. The integration runner replaces only the two
-// endpoint placeholders with ephemeral CI container addresses.
-prometheus.scrape "workflows_scaffold" {
+// Representative Argo CD metrics through the reviewed post-Alloy label contract.
+prometheus.scrape "argocd" {
 	targets         = [{"__address__" = "__TARGET__", "job" = "argocd"}]
+	metrics_path    = "/input.prom"
 	scrape_interval = "1s"
+	scrape_timeout  = "500ms"
 	honor_labels    = true
 	forward_to      = [prometheus.relabel.central.receiver]
 }

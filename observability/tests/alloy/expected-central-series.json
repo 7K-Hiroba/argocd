@@ -2,12 +2,15 @@
   "fixtureVersion": "alloy-v1.13.0",
   "reviewRequired": true,
   "sourceConfig": "config.river",
-  "metric": "workflows_scaffold_up",
+  "metric": "argocd_app_info",
   "labels": {
     "cluster": "kind-ci",
     "instance": "ci",
     "job": "argocd",
-    "org": "ci"
+    "org": "ci",
+    "namespace": "argocd",
+    "health_status": "Degraded",
+    "sync_status": "OutOfSync"
   },
   "value": 1
 }

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "repoURL", "revision", "path", "destinationNamespace", "project"],
+  "properties": {
+    "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "repoURL": {"type": "string", "pattern": "^https://"},
+    "revision": {"type": "string", "minLength": 1, "not": {"const": "HEAD"}},
+    "path": {"type": "string", "minLength": 1, "not": {"pattern": "(^|/)\\.\\.(/|$)"}},
+    "destinationNamespace": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "project": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}
+  }
+}

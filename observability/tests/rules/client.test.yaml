@@ -1,0 +1,30 @@
+evaluation_interval: 1m
+rule_files:
+  - ../../rules/client.yaml
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'argocd_cluster_connection_status{org="ci",cluster="kind-ci",job="argocd-server",instance="ci"}'
+        values: '0 0 0 0 0 0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDClusterConnectionFailed
+        exp_alerts:
+          - exp_labels:
+              alertname: ArgoCDClusterConnectionFailed
+              app: argocd
+              org: ci
+              cluster: kind-ci
+              job: argocd-server
+              instance: ci
+              severity: critical
+            exp_annotations:
+              summary: Argo CD cannot connect to a configured cluster
+  - interval: 1m
+    input_series:
+      - series: 'argocd_cluster_connection_status{org="ci",cluster="kind-ci",job="argocd-server",instance="ci"}'
+        values: '1 1 1 1 1 1 1 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDClusterConnectionFailed
+        exp_alerts: []

@@ -1,0 +1,15 @@
+fields:
+  argo-cd.server.replicas:
+    title: Argo CD server replicas
+    description: Number of argocd-server replicas for this installation
+  argo-cd.repoServer.replicas:
+    title: Repository server replicas
+  argo-cd.redis-ha.enabled:
+    title: Redis HA
+    description: Enable the upstream Redis HA dependency for production-like installations
+  argo-cd.dex.enabled:
+    hidden: true
+  observability.enabled:
+    hidden: true
+  observability.rules.enabled:
+    hidden: true

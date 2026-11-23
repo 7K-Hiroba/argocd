@@ -1,7 +1,12 @@
-image:
-  repository: argocd
-  tag: ci
-  pullPolicy: Never
+argo-cd:
+  server:
+    replicas: 1
+  repoServer:
+    replicas: 1
+  applicationSet:
+    replicas: 1
+  redis-ha:
+    enabled: false
 observability:
   enabled: false
   rules:

@@ -1,23 +1,15 @@
 # argocd (platform app)
 
-ArgoCD on the platform cluster (§5.6): hosts tenant-local GitOps root apps
-(rendered tenant-zone baselines) and shared ArgoCD Projects as
-platform-scoped resources reconciled by `inari-operator`. SSO is wired to the
-platform Keycloak out-of-band (OIDC config delivered via ESO).
+Argo CD hosts tenant-local GitOps root applications and native AppProjects. The source-agnostic renderer emits ArgoCD `Application`/`ApplicationSet` and native resources through the first-class addon flow; no inari-operator or provider controller is required.
 
-## Chart
+The package points to the first-party OCI chart `oci://ghcr.io/7k-hiroba/argocd/charts/argocd`, which wraps the exact upstream `argo-cd` chart `7.6.12` (Argo CD `v2.12.6`) through `Chart.lock`. Defaults preserve HA server/repo-server/application-set, redis-ha, metrics/ServiceMonitors, default read-only RBAC, and disabled Dex/notifications. SSO and secret material remain delivered through the existing Inari baseline and ESO machinery.
 
-- repo: https://argoproj.github.io/argo-helm
-- chart: `argo-cd`
-- channels: `stable` / `incubating` (see `chart.yaml`)
-
-Defaults: HA server/repo-server/application-set, redis-ha, metrics +
-ServiceMonitors, default RBAC readonly, dex/notifications off (SSO via
-Keycloak; notifications via the control plane).
+The package carries a day-one values schema and an exact compatible `observability-pack` reference. Inari-managed deployments leave chart-native observability disabled and select a central or local companion explicitly.
 
 ```sh
-helm template argocd argo-cd \
-  --repo https://argoproj.github.io/argo-helm \
-  --version "$(yq '.channels.stable' chart.yaml)" \
-  --namespace argocd -f values-defaults.yaml
+helm dependency build charts/argocd
+helm template argocd charts/argocd \
+  --namespace argocd \
+  --api-versions monitoring.coreos.com/v1 \
+  --values packages/argocd/values-defaults.yaml
 ```
