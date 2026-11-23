@@ -12,7 +12,7 @@ import (
 	agentv1 "github.com/7K-Inari/inari-api/gen/go/inari/agent/v1"
 	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/argocd"
+	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
 )
 
 func invokeRaw(t *testing.T, action string, auth pluginsdk.AuthContext, payload []byte) error {

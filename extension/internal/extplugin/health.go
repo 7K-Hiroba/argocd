@@ -3,7 +3,7 @@ package extplugin
 import (
 	"context"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/gateway"
+	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 // health reports NOT_SERVING when the Agent Gateway is not configured, so the

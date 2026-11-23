@@ -22,7 +22,7 @@ import (
 
 	agentv1 "github.com/7K-Inari/inari-api/gen/go/inari/agent/v1"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/argocd"
+	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
 )
 
 // ArgoCDClient talks to one tenant-local ArgoCD API.

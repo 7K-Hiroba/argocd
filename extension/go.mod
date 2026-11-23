@@ -1,4 +1,4 @@
-module github.com/7K-Inari/inari-ext-argocd
+module github.com/7K-Hiroba/argocd/extension
 
 go 1.26.3
 

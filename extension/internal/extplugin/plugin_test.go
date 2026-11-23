@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/argocd"
-	"github.com/7K-Inari/inari-ext-argocd/internal/gateway"
+	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
+	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 // fakeGateway records requests and returns a scripted ack or error.

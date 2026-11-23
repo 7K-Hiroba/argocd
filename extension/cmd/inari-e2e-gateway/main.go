@@ -22,8 +22,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/7K-Inari/inari-ext-argocd/e2e/harness"
-	"github.com/7K-Inari/inari-ext-argocd/internal/agentstub"
+	"github.com/7K-Hiroba/argocd/extension/e2e/harness"
+	"github.com/7K-Hiroba/argocd/extension/internal/agentstub"
 )
 
 func main() {

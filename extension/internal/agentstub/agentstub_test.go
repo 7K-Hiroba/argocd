@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/argocd"
+	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
 )
 
 type recordedCall struct {

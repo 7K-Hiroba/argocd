@@ -29,11 +29,11 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/7K-Inari/inari-ext-argocd/e2e/harness"
-	"github.com/7K-Inari/inari-ext-argocd/internal/agentstub"
-	"github.com/7K-Inari/inari-ext-argocd/internal/argocd"
-	"github.com/7K-Inari/inari-ext-argocd/internal/extplugin"
-	"github.com/7K-Inari/inari-ext-argocd/internal/gateway"
+	"github.com/7K-Hiroba/argocd/extension/e2e/harness"
+	"github.com/7K-Hiroba/argocd/extension/internal/agentstub"
+	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
+	"github.com/7K-Hiroba/argocd/extension/internal/extplugin"
+	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 // fakeArgoCD records requests and serves minimal Application endpoints.

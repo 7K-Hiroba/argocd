@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/argocd"
-	"github.com/7K-Inari/inari-ext-argocd/internal/extplugin"
-	"github.com/7K-Inari/inari-ext-argocd/internal/gateway"
+	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
+	"github.com/7K-Hiroba/argocd/extension/internal/extplugin"
+	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 func main() {

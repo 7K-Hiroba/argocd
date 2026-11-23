@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/7K-Inari/inari-ext-argocd/internal/gateway"
+	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 // Session is one connected agent: commands in, acks out.
