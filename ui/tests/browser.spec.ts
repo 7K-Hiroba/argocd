@@ -20,8 +20,17 @@ async function mountRemote(page: Page): Promise<void> {
   await expect(page.locator('tr', { hasText: extensionName }).getByText('ready', { exact: true })).toBeVisible();
 }
 
+async function navigateWithinHost(page: Page, path: string): Promise<void> {
+  // Full reloads reset the host's in-memory MSW registry and discard the test remote.
+  await page.evaluate((nextPath) => {
+    window.history.pushState(null, '', nextPath);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, path);
+  await expect(page).toHaveURL(new RegExp(`${path}$`));
+}
+
 async function openInstanceActions(page: Page): Promise<void> {
-  await page.goto('/acme/deploys/ri-orders-db');
+  await navigateWithinHost(page, '/acme/deploys/ri-orders-db');
   await page.getByRole('button', { name: 'Actions', exact: true }).click();
 }
 
@@ -38,14 +47,14 @@ test.afterEach(async () => {
 });
 
 test('slot cluster-tab:argocd-health', async ({ page }) => {
-  await page.goto('/acme/clusters/cl-kind-dev');
+  await navigateWithinHost(page, '/acme/clusters/cl-kind-dev');
   await page.getByRole('tab', { name: 'ArgoCD', exact: true }).click();
   await expect(page.getByText(/ArgoCD health —/).first()).toBeVisible();
   await expect(page.getByText('ri-orders-db')).toBeVisible();
 });
 
 test('slot catalog-card:argocd-badge', async ({ page }) => {
-  await page.goto('/acme/catalog');
+  await navigateWithinHost(page, '/acme/catalog');
   await expect(page.getByText('GitOps · ArgoCD', { exact: true }).first()).toBeVisible();
 });
 
