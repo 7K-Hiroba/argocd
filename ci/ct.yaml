@@ -1,4 +1,6 @@
 chart-dirs:
   - charts
+chart-repos:
+  - argo=https://argoproj.github.io/argo-helm
 validate-maintainers: false
 check-version-increment: false

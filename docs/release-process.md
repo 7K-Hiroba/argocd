@@ -15,6 +15,6 @@ Release-please opens one PR with independent components. Do not merge a Release 
 
 Every deployable artifact requires immutable build/push, digest capture, cosign keyless signature, SLSA v1 provenance, release-linked signed test evidence, independent verification, and only then channel/index/finalization. Index `latest` is not a deployment pin. No GitHub-Release UI asset, classic Helm index, or mutable latest/edge deployment is permitted.
 
-The current workflow callers use candidate PR #39 SHA `522c3530c94336249928f5a65a5a9f98c46bf540` and are explicitly marked unreleased. Before protected publication, adopt the exact signed workflow release containing that implementation and rerun affected checks. Do not treat the candidate as released or use an unreleased PR head for final publication.
+The current workflow callers use merged PR #39 main SHA `7e61f10f1f78ebf9470a6f9343dd86d71e4e6447` and are explicitly marked unreleased. Before protected publication, adopt the exact signed workflow release containing that implementation and rerun affected checks. Do not treat merged main as a signed release or use an unreleased main SHA for final publication.
 
 Chart repair uses the standard `chart-repair.yml` workflow against an existing exact annotated tag. It cannot move channels or rewrite history.

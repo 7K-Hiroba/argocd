@@ -3,5 +3,5 @@ on: {pull_request: {branches: [main]}, merge_group: {}}
 permissions: {contents: read}
 jobs:
   validate:
-    uses: 7K-Hiroba/workflows/.github/workflows/validate-packages.yml@522c3530c94336249928f5a65a5a9f98c46bf540 # candidate: workflows PR #39 (unreleased)
+    uses: 7K-Hiroba/workflows/.github/workflows/validate-packages.yml@7e61f10f1f78ebf9470a6f9343dd86d71e4e6447 # v1.1.0+main.7e61f10 (unreleased); merged workflows PR #39
     with: {root: .}

@@ -1,6 +1,7 @@
 schema: inari.chart-test.v1
 dependencies:
   - packages/observability-pack/tests/deps/prometheusrule-crd.yaml
+  - packages/observability-pack/tests/deps/servicemonitor-crd.yaml
 install:
   timeout: 10m
   values:
