@@ -1,18 +1,36 @@
-import type { ComponentType } from 'react';
-import { ClusterTabBlueprint, createExtension } from '@7k-inari/ui-plugin-sdk';
-import type { ClusterTabSlotProps } from '@7k-inari/ui-plugin-sdk';
+import {
+  createExtension,
+  ClusterTabBlueprint,
+  CatalogCardBlueprint,
+  InstanceActionBlueprint,
+} from '@7k-inari/ui-plugin-sdk';
+import { ArgoCDHealthTab } from './ClusterTab';
+import { ArgoCDDeliveryBadge } from './CatalogCard';
+import { runRefresh, runRollback, runSync } from './actions';
 
-const Health: ComponentType<ClusterTabSlotProps> = () => (
-  <section data-inari-slot="health" aria-label="Scaffold health">Synthetic extension healthy</section>
-);
-
+// The extension entry: manifest + slot contributions (blueprint contract,
+// plan §5.8 / §8.4). Keep `version` in sync with ui/package.json
+// (release-please node component).
 export default createExtension({
   manifest: {
-    name: 'argocd',
-    version: '0.1.0',
+    name: 'inari-ext-argocd',
+    version: '0.1.0', // x-release-please-version
     kind: 'ui',
-    title: 'Workflows scaffold',
-    description: 'CI-only public SDK fixture',
+    title: 'ArgoCD',
+    description: 'ArgoCD health, status badges, and imperative GitOps actions (sync/refresh/rollback).',
   },
-  slots: [ClusterTabBlueprint({ name: 'health', title: 'Health', component: Health })],
+  slots: [
+    ClusterTabBlueprint({
+      name: 'argocd-health',
+      title: 'ArgoCD',
+      component: ArgoCDHealthTab,
+    }),
+    CatalogCardBlueprint({
+      name: 'argocd-badge',
+      component: ArgoCDDeliveryBadge,
+    }),
+    InstanceActionBlueprint({ name: 'argocd-sync', label: 'Sync (ArgoCD)', run: runSync }),
+    InstanceActionBlueprint({ name: 'argocd-refresh', label: 'Refresh (ArgoCD)', run: runRefresh }),
+    InstanceActionBlueprint({ name: 'argocd-rollback', label: 'Rollback (ArgoCD)', run: runRollback }),
+  ],
 });

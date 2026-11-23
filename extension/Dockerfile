@@ -1,13 +1,13 @@
-FROM golang:1.26.3-bookworm@sha256:3bf5b04541eb4a37fe62aa1bc9c98a1dec09db9d2e79c1d2eb54e3c9d08dbca9 AS build
+# Backend extension image: the plugin binary the inari-server Extension Host
+# launches as a supervised sidecar (plan §5.8, §6).
+FROM golang:1.27@sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/argocd ./cmd/argocd
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/inari-ext-argocd ./cmd/inari-ext-argocd
 
-FROM gcr.io/distroless/static-debian13:nonroot@sha256:816dc4d589459a7fe33b8a2e69edb70da56ffad7161f4b415937fa2bfe7e92e8
-COPY --from=build /out/argocd /usr/local/bin/argocd
-ENV SCAFFOLD_HTTP=true
-EXPOSE 8080
-USER 65532:65532
-ENTRYPOINT ["/usr/local/bin/argocd"]
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab
+COPY --from=build /out/inari-ext-argocd /usr/local/bin/inari-ext-argocd
+USER nonroot
+ENTRYPOINT ["/usr/local/bin/inari-ext-argocd"]

@@ -1,0 +1,29 @@
+# Changelog
+
+## [0.3.0](https://github.com/7K-Inari/inari-ext-argocd/compare/ui-v0.2.1...ui-v0.3.0) (2026-11-13)
+
+
+### Features
+
+* **ui:** re-skin extension slots with 7k-design-system classes ([c19b1ad](https://github.com/7K-Inari/inari-ext-argocd/commit/c19b1ade9f7228a3a674281f6a8f58423e77e25f))
+
+## [0.2.1](https://github.com/7K-Inari/inari-ext-argocd/compare/ui-v0.2.0...ui-v0.2.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **ui:** correct SDK share name, shell bearer auth, richer cluster tab ([#13](https://github.com/7K-Inari/inari-ext-argocd/issues/13)) ([b3cfd64](https://github.com/7K-Inari/inari-ext-argocd/commit/b3cfd646acb998cfa8c95fac7f87831936698bf3))
+* **ui:** tenant-scoped instances path (was hardcoded /api/v1/resources → 404) ([682964b](https://github.com/7K-Inari/inari-ext-argocd/commit/682964ba3f7738499627195f47a2b873da235e39))
+
+## [0.2.0](https://github.com/7K-Inari/inari-ext-argocd/compare/ui-v0.1.0...ui-v0.2.0) (2026-08-21)
+
+
+### Features
+
+* ArgoCD reference extension (backend plugin, UI remote, e2e) ([7a16d76](https://github.com/7K-Inari/inari-ext-argocd/commit/7a16d76490ff82f86340a110deaec3dd97f5b3c7))
+* **ui:** add ArgoCD Module Federation remote with blueprint slots ([e6b1cd1](https://github.com/7K-Inari/inari-ext-argocd/commit/e6b1cd1fc91ede435900fb4ec1f46477fb70408d))
+
+
+### Bug Fixes
+
+* **ui:** copy only published file set when vendoring UI SDK build ([a9d2477](https://github.com/7K-Inari/inari-ext-argocd/commit/a9d2477cf7bdffa73e79c173b225f0b6bf17cfbd))

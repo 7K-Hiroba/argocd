@@ -1,11 +1,16 @@
-module github.com/7K-Hiroba/argocd
+module github.com/7K-Inari/inari-ext-argocd
 
 go 1.26.3
 
-require github.com/7K-Inari/inari-plugin-sdk v1.2.1-ffb897b
+require (
+	connectrpc.com/connect/v2 v2.0.2
+	github.com/7K-Inari/inari-api v0.7.0
+	github.com/7K-Inari/inari-plugin-sdk v1.2.1-ffb897b
+	google.golang.org/grpc v1.85.0
+	google.golang.org/protobuf v1.36.12
+)
 
 require (
-	github.com/7K-Inari/inari-api v0.7.0-f0bdbad // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
@@ -18,6 +23,4 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260817212433-ac3dfec99bb1 // indirect
-	google.golang.org/grpc v1.85.0 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 )
