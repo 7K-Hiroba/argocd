@@ -1,0 +1,10 @@
+* @7K-Hiroba/hiroba-maintainers
+
+.github/workflows/ @7K-Hiroba/platform-security
+release-please-config.json @7K-Hiroba/platform-security
+.release-please-manifest.json @7K-Hiroba/platform-security
+docs/dependencies.md @7K-Hiroba/platform-security
+observability/tests/ @7K-Hiroba/platform-security
+tests/smoke/ @7K-Hiroba/platform-security
+docs/verification.md @7K-Hiroba/platform-security
+docs/reference-promotion.md @7K-Hiroba/platform-security

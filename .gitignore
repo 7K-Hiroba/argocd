@@ -5,3 +5,7 @@ diagnostics/
 *.log
 __pycache__/
 *.pyc
+.venv/
+.hiroba-cache/
+.kube/
+charts/*/charts/
