@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ClusterTabSlotProps } from '@7k-inari/ui-plugin-sdk';
-import { useAuth, useTenant } from '@7k-inari/ui-plugin-sdk';
-import { configureAuth, listClusterInstances, type ResourceInstance } from './api';
+import { useTenant } from '@7k-inari/ui-plugin-sdk';
+import { listClusterInstances, type ResourceInstance } from './api';
 import { healthBadgeClass } from './health';
 
 export function HealthBadge({ health }: { health?: string }) {
@@ -18,12 +18,9 @@ export function HealthBadge({ health }: { health?: string }) {
  * the host console loads the stylesheet and tokens. */
 export function ArgoCDHealthTab({ cluster }: ClusterTabSlotProps) {
   const { current } = useTenant();
-  const auth = useAuth();
   const [instances, setInstances] = useState<ResourceInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
-
-  useEffect(() => configureAuth(() => auth.getToken()), [auth]);
 
   useEffect(() => {
     if (!current) {

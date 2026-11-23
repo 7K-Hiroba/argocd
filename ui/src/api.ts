@@ -1,36 +1,14 @@
-// Control-plane API access for the extension's UI remote.
-//
-// The Inari host shell serves remotes same-origin, so calls go to relative
-// paths with session credentials; the control plane authenticates, enforces
-// extension RBAC (`extensions:invoke:inari-ext-argocd`), and proxies
-// `/api/extensions/inari-ext-argocd/*` to the backend plugin (plan §5.8).
-//
-// The control plane authenticates with Bearer tokens (OIDC), not cookies:
-// remotes must attach the shell's token. Components call configureAuth from
-// an effect with the SDK's useAuth().getToken (the SDK is a host-provided
-// singleton, so this is the shell's live session).
+// Control-plane API access for the extension's UI remote. Extension actions
+// use the public SDK client; the host supplies authentication and typed
+// re-auth handling. Only the tenant inventory read below remains an
+// ArgoCD-specific REST projection because it is not an extension invocation.
+
+import { ApiClient, getAuthState } from '@7k-inari/ui-plugin-sdk';
 
 export const EXTENSION_NAME = 'inari-ext-argocd';
 
-type TokenProvider = () => Promise<string | undefined> | string | undefined;
-
-let tokenProvider: TokenProvider | null = null;
-
-/** configureAuth installs the shell's token provider (call once per mounted
- * extension component; idempotent). */
-export function configureAuth(getToken: TokenProvider): void {
-  tokenProvider = getToken;
-}
-
-async function resolveToken(): Promise<string | undefined> {
-  if (tokenProvider) return tokenProvider();
-  // Fallback for action runners invoked outside any extension component:
-  // read the shared SDK's module-level auth state. getAuthState lands in SDK
-  // 0.1.6; stay type-compatible with 0.1.5 (optional access).
-  const sdk = (await import('@7k-inari/ui-plugin-sdk')) as unknown as {
-    getAuthState?: () => { getToken: TokenProvider } | null;
-  };
-  return sdk.getAuthState?.()?.getToken();
+function apiClient(): ApiClient {
+  return new ApiClient({ baseUrl: '', getToken: () => getAuthState()?.getToken() });
 }
 
 export type { ResourceInstance } from '@7k-inari/ui-plugin-sdk';
@@ -42,46 +20,30 @@ export interface ActionResult {
   message?: string;
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const token = await resolveToken();
-  const headers: Record<string, string> = { 'content-type': 'application/json' };
-  if (token) headers['authorization'] = `Bearer ${token}`;
-  const res = await fetch(path, {
-    method,
-    credentials: 'include',
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error(`${method} ${path} failed: ${res.status}`);
-  }
-  return (await res.json()) as T;
-}
-
-/** invokeAction calls one backend plugin action via the control plane proxy. */
+/** invokeAction calls one backend plugin action through the public SDK. */
 export function invokeAction(action: string, payload: unknown): Promise<ActionResult> {
-  return request<ActionResult>(
-    'POST',
-    `/api/extensions/${EXTENSION_NAME}/actions/${encodeURIComponent(action)}`,
-    payload,
-  );
+  return apiClient().invokeExtension<ActionResult>(EXTENSION_NAME, `/actions/${encodeURIComponent(action)}`, {
+    method: 'POST',
+    body: payload,
+  });
 }
 
-/** listClusterInstances reads the host's resource inventory for a cluster. */
+/** listClusterInstances reads the host's tenant-scoped resource inventory. */
 export async function listClusterInstances(
   org: string,
   clusterId: string,
 ): Promise<ResourceInstance[]> {
-  // The server wraps lists: { instances: [...] }.
-  const res = await request<{ instances: ResourceInstance[] | null }>(
-    'GET',
-    `/api/v1/tenants/${encodeURIComponent(org)}/instances?clusterId=${encodeURIComponent(clusterId)}`,
-  );
-  return res.instances ?? [];
+  const token = await getAuthState()?.getToken();
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (token) headers.authorization = `Bearer ${token}`;
+  const path = `/api/v1/tenants/${encodeURIComponent(org)}/instances?clusterId=${encodeURIComponent(clusterId)}`;
+  const res = await fetch(path, { method: 'GET', headers });
+  if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
+  const body = (await res.json()) as { instances: ResourceInstance[] | null };
+  return body.instances ?? [];
 }
 
-/** argocdAppRef extracts the ArgoCD Application identity the orchestrator
- * records in instance status (status.argocd.{name,namespace,project}). */
+/** argocdAppRef extracts the ArgoCD Application identity recorded in status. */
 export function argocdAppRef(instance: ResourceInstance): {
   name: string;
   namespace: string;

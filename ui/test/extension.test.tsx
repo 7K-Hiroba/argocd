@@ -6,7 +6,7 @@ import extension from '../src/index';
 import { invokeAction, argocdAppRef } from '../src/api';
 import { runSync, runRefresh, runRollback } from '../src/actions';
 import { ArgoCDHealthTab, HealthBadge } from '../src/ClusterTab';
-import { TenantProvider, AuthProvider, type TenantState, type AuthState } from '@7k-inari/ui-plugin-sdk';
+import { TenantProvider, AuthProvider, SessionExpiredError, type TenantState, type AuthState } from '@7k-inari/ui-plugin-sdk';
 
 const testTenant: TenantState = {
   current: { orgId: 'acme', orgName: 'Acme' },
@@ -33,6 +33,7 @@ const instance = {
 };
 
 beforeEach(() => {
+  AuthProvider({ value: { ...testAuth, getToken: () => undefined }, children: null });
   vi.restoreAllMocks();
 });
 
@@ -65,8 +66,7 @@ describe('invokeAction', () => {
   });
 
   it('attaches the shell bearer token once configured', async () => {
-    const { configureAuth } = await import('../src/api');
-    configureAuth(() => 'shell-token');
+    AuthProvider({ value: { ...testAuth, getToken: () => 'shell-token' }, children: null });
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response('{"commandId":"c1","outcome":"applied"}', { status: 200 }));
@@ -76,8 +76,7 @@ describe('invokeAction', () => {
   });
 
   it('omits the authorization header without a token', async () => {
-    const { configureAuth } = await import('../src/api');
-    configureAuth(() => undefined);
+    AuthProvider({ value: { ...testAuth, getToken: () => undefined }, children: null });
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response('{"commandId":"c1","outcome":"applied"}', { status: 200 }));
@@ -89,6 +88,20 @@ describe('invokeAction', () => {
   it('throws on non-2xx', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 403 }));
     await expect(invokeAction('argocd.sync', {})).rejects.toThrow('403');
+  });
+
+  it('surfaces the SDK typed re-auth error and provider metadata', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      new Response('{"detail":"re-authentication required","code":"reauth_required"}', {
+        status: 401,
+        headers: { 'content-type': 'application/json', 'X-Inari-Reauth': 'argocd' },
+      }),
+    );
+    await expect(invokeAction('argocd.sync', {})).rejects.toBeInstanceOf(SessionExpiredError);
+    await invokeAction('argocd.sync', {}).catch((error: SessionExpiredError) => {
+      expect(error.kind).toBe('session-expired');
+      expect(error.reauth?.provider).toBe('argocd');
+    });
   });
 });
 
