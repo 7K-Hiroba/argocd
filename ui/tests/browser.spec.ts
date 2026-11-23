@@ -8,7 +8,9 @@ async function mountRemote(page: Page): Promise<void> {
   });
 
   await page.goto('/acme/extensions');
-  const existing = page.locator('tr', { hasText: extensionName });
+  const existing = page
+    .locator('tr', { hasText: extensionName })
+    .filter({ has: page.getByRole('button', { name: 'Remove', exact: true }) });
   await expect(existing).toHaveCount(1);
   await existing.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(existing).toHaveCount(0);
