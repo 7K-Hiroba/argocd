@@ -1,45 +1,50 @@
 // Command inari-e2e-gateway is the colocated e2e counterpart of the control
-// plane's Agent Gateway + inari-agent pair, for the kind e2e (e2e/kind). It
-// serves the tunnel contract (internal/gateway) on a TCP port and runs one
-// agent session that executes commands against a reachable ArgoCD API
-// (typically a kubectl port-forward into the kind cluster).
-//
-//	CLUSTER_ID             cluster identity to register (default "e2e-kind")
-//	LISTEN_ADDR            gateway listen address (default "127.0.0.1:9090")
-//	ARGOCD_BASE_URL        tenant-local ArgoCD API (default "http://127.0.0.1:8080")
-//	ARGOCD_TOKEN           optional bearer token
-//	INARI_MANAGED_PROJECTS comma list (default "inari")
+// plane's Agent Gateway + inari-agent pair, for the kind e2e. It serves the
+// generated public Connect contract and runs one agent session against a
+// reachable ArgoCD API.
 package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
-	"google.golang.org/grpc"
-
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/7K-Hiroba/argocd/extension/e2e/harness"
 	"github.com/7K-Hiroba/argocd/extension/internal/agentstub"
+	"github.com/7K-Inari/inari-api/gen/go/inari/extensions/v1/extensionsv1connect"
 )
 
 func main() {
 	listen := envOr("LISTEN_ADDR", "127.0.0.1:9090")
 	clusterID := envOr("CLUSTER_ID", "e2e-kind")
 
-	lis, err := net.Listen("tcp", listen)
+	listener, err := net.Listen("tcp", listen)
 	if err != nil {
 		log.Fatalf("listen %s: %v", listen, err)
 	}
-	srv := harness.NewServer()
-	grpcSrv := grpc.NewServer()
-	desc := srv.ServiceDesc()
-	grpcSrv.RegisterService(&desc, srv)
+	gateway := harness.NewServer()
+	rpcServer := connect.NewServer()
+	extensionsv1connect.RegisterAgentGatewayHandler(rpcServer, gateway)
+	mux := http.NewServeMux()
+	connecthttp.Mount(mux, rpcServer)
+	// Test-only OAuth token endpoint: the plugin uses the same standard
+	// client-credentials flow as production, with no static-token bypass.
+	mux.HandleFunc("/oauth/token", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(`{"access_token":"e2e-extension-token","token_type":"Bearer","expires_in":300}`))
+	})
+	server := &http.Server{Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 
-	sess, disconnect := srv.RegisterAgent(clusterID)
+	sess, disconnect := gateway.RegisterAgent(clusterID)
 	defer disconnect()
 	argo := &agentstub.ArgoCDClient{
 		BaseURL:         envOr("ARGOCD_BASE_URL", "http://127.0.0.1:8080"),
@@ -51,12 +56,14 @@ func main() {
 	go harness.RunAgent(ctx, sess, argo.Execute)
 	go func() {
 		<-ctx.Done()
-		grpcSrv.GracefulStop()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = server.Shutdown(shutdownCtx)
 	}()
 
 	log.Printf("e2e gateway on %s, agent session for cluster %q against %s (managed projects: %v)",
 		listen, clusterID, argo.BaseURL, argo.ManagedProjects)
-	if err := grpcSrv.Serve(lis); err != nil {
+	if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("serve: %v", err)
 	}
 }

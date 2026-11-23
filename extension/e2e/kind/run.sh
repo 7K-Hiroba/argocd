@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 CLUSTER="${KIND_CLUSTER:-inari-e2e}"
-GW_ADDR="127.0.0.1:9090"
+GW_URL="http://127.0.0.1:9090"
 ARGOCD_PF_PORT=8080
 ARGOCD_VERSION="${ARGOCD_VERSION:-stable}"
 
@@ -50,12 +50,12 @@ go build -o bin/inari-e2e-gateway ./cmd/inari-e2e-gateway
 go build -o bin/e2e-driver ./e2e/kind/driver
 
 echo "==> start e2e gateway (agent session -> ArgoCD)"
-CLUSTER_ID=e2e-kind LISTEN_ADDR="$GW_ADDR" ARGOCD_BASE_URL="http://127.0.0.1:$ARGOCD_PF_PORT" \
+CLUSTER_ID=e2e-kind LISTEN_ADDR="${GW_URL#http://}" ARGOCD_BASE_URL="http://127.0.0.1:$ARGOCD_PF_PORT" \
   ARGOCD_TOKEN="$ARGOCD_TOKEN" bin/inari-e2e-gateway &
 GW_PID=$!
 sleep 2
 
 echo "==> run driver (control plane role)"
-PLUGIN_BINARY=bin/inari-ext-argocd AGENT_GATEWAY_ADDR="$GW_ADDR" CLUSTER_ID=e2e-kind bin/e2e-driver
+PLUGIN_BINARY=bin/inari-ext-argocd AGENT_GATEWAY_URL="$GW_URL" CLUSTER_ID=e2e-kind bin/e2e-driver
 
 echo "==> E2E PASSED"

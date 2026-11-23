@@ -11,21 +11,25 @@ import (
 
 	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
 	"github.com/7K-Hiroba/argocd/extension/internal/extplugin"
-	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
+	"github.com/7K-Inari/inari-plugin-sdk/host/agentgateway"
 )
 
 type fakeGateway struct {
-	last gateway.Request
-	ack  *agentv1.CommandAck
-	err  error
+	clusterID string
+	command   *agentv1.InvokeAction
+	ack       *agentv1.CommandAck
+	err       error
 }
 
-func (f *fakeGateway) InvokeAction(_ context.Context, req gateway.Request) (*agentv1.CommandAck, error) {
-	f.last = req
+var _ agentgateway.Gateway = (*fakeGateway)(nil)
+
+func (f *fakeGateway) InvokeAction(_ context.Context, clusterID string, command *agentv1.InvokeAction) (*agentv1.CommandAck, error) {
+	f.clusterID = clusterID
+	f.command = command
 	return f.ack, f.err
 }
 
-func buildHandler(t *testing.T, gw gateway.Gateway) http.Handler {
+func buildHandler(t *testing.T, gw agentgateway.Gateway) http.Handler {
 	t.Helper()
 	p, err := extplugin.Build(extplugin.Config{
 		Gateway: gw,
@@ -54,11 +58,8 @@ func TestActionsHandlerForwardsHostInjectedCredential(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("status %d body %s", w.Code, w.Body.String())
 	}
-	if gw.last.UserToken != "sso-token-123" {
-		t.Fatalf("expected per-user token forwarded to gateway, got %q", gw.last.UserToken)
-	}
-	if gw.last.TenantID != "tenant-acme" {
-		t.Fatalf("tenant binding: %q", gw.last.TenantID)
+	if gw.clusterID != "cluster-1" || gw.command == nil {
+		t.Fatalf("unexpected gateway invocation: cluster=%q command=%v", gw.clusterID, gw.command)
 	}
 }
 
@@ -79,7 +80,7 @@ func TestActionsHandlerFailsClosedWithoutSession(t *testing.T) {
 	if !strings.Contains(w.Body.String(), `"code":"reauth_required"`) {
 		t.Fatalf("expected typed reauth body, got %s", w.Body.String())
 	}
-	if gw.last.Command != nil {
+	if gw.command != nil {
 		t.Fatal("gateway must not be called without a user session")
 	}
 }

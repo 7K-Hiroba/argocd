@@ -18,18 +18,20 @@ import (
 
 func main() {
 	pluginBin := os.Getenv("PLUGIN_BINARY")
-	gatewayAddr := os.Getenv("AGENT_GATEWAY_ADDR")
+	gatewayURL := os.Getenv("AGENT_GATEWAY_URL")
 	clusterID := envOr("CLUSTER_ID", "e2e-kind")
-	if pluginBin == "" || gatewayAddr == "" {
-		log.Fatal("PLUGIN_BINARY and AGENT_GATEWAY_ADDR are required")
+	if pluginBin == "" || gatewayURL == "" {
+		log.Fatal("PLUGIN_BINARY and AGENT_GATEWAY_URL are required")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	client, err := host.Launch(ctx, pluginBin, host.WithEnv(
-		"INARI_AGENT_GATEWAY_ADDR="+gatewayAddr,
-		"INARI_AGENT_GATEWAY_INSECURE=true",
+		"INARI_AGENT_GATEWAY_URL="+gatewayURL,
+		"INARI_EXTENSION_CLIENT_ID=e2e-extension",
+		"INARI_EXTENSION_CLIENT_SECRET=e2e-test-only",
+		"INARI_EXTENSION_TOKEN_URL="+gatewayURL+"/oauth/token",
 		"INARI_MANAGED_PROJECTS=inari",
 	))
 	if err != nil {

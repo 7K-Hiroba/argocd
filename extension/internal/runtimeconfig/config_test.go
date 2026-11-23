@@ -20,16 +20,16 @@ func TestGatewayFromEnv(t *testing.T) {
 			"INARI_AGENT_GATEWAY_URL": "https://inari-server.example.com",
 		}, wantNil: true, wantErr: true},
 		{name: "invalid url rejected", env: map[string]string{
-			"INARI_AGENT_GATEWAY_URL":   "localhost:8080",
-			"INARI_EXTENSION_CLIENT_ID": "ext-inari-ext-argocd",
+			"INARI_AGENT_GATEWAY_URL":       "localhost:8080",
+			"INARI_EXTENSION_CLIENT_ID":     "ext-inari-ext-argocd",
 			"INARI_EXTENSION_CLIENT_SECRET": "secret",
-			"INARI_EXTENSION_TOKEN_URL": "https://keycloak.example.com/token",
+			"INARI_EXTENSION_TOKEN_URL":     "https://keycloak.example.com/token",
 		}, wantNil: true, wantErr: true},
 		{name: "complete public client config", env: map[string]string{
-			"INARI_AGENT_GATEWAY_URL":   "https://inari-server.example.com",
-			"INARI_EXTENSION_CLIENT_ID": "ext-inari-ext-argocd",
+			"INARI_AGENT_GATEWAY_URL":       "https://inari-server.example.com",
+			"INARI_EXTENSION_CLIENT_ID":     "ext-inari-ext-argocd",
 			"INARI_EXTENSION_CLIENT_SECRET": "secret",
-			"INARI_EXTENSION_TOKEN_URL": "https://keycloak.example.com/token",
+			"INARI_EXTENSION_TOKEN_URL":     "https://keycloak.example.com/token",
 		}},
 	}
 	for _, tc := range tests {

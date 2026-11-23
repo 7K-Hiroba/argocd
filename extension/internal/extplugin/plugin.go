@@ -1,7 +1,7 @@
 // Package extplugin wires the ArgoCD actions into an inari-plugin-sdk Plugin:
 // payload decoding, tenant binding from the authenticated AuthContext,
 // validation + scoping (internal/argocd), and delivery through the Agent
-// Gateway (internal/gateway). It fails closed: without a reachable gateway
+// public Agent Gateway client. It fails closed: without a reachable gateway
 // every action returns CodeUnavailable.
 package extplugin
 
@@ -10,15 +10,16 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	agentv1 "github.com/7K-Inari/inari-api/gen/go/inari/agent/v1"
 	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
+	"github.com/7K-Inari/inari-plugin-sdk/host/agentgateway"
 
 	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
-	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 // Info is the plugin identity reported to the host during handshake.
@@ -28,7 +29,7 @@ var Info = pluginsdk.Info{Name: "inari-ext-argocd", Version: Version}
 type Config struct {
 	// Gateway is the Agent Gateway client. Nil fails closed: all actions
 	// return CodeUnavailable.
-	Gateway gateway.Gateway
+	Gateway agentgateway.Gateway
 	// Scoping restricts which ArgoCD projects the extension may touch.
 	Scoping argocd.Scoping
 	// Timeout bounds one round-trip through the agent. Defaults to
@@ -110,19 +111,11 @@ func handle(cfg Config, action string) pluginsdk.Handler {
 		if cfg.Gateway == nil {
 			return nil, pluginsdk.Errorf(pluginsdk.CodeUnavailable, "agent gateway is not configured; failing closed")
 		}
-		ac, ok := pluginsdk.AuthContextFrom(ctx)
-		if !ok {
-			return nil, pluginsdk.Errorf(pluginsdk.CodeUnauthenticated, "missing auth context")
-		}
-
-		// Per-user downstream credential (oidc-sso-session), injected by the
-		// control plane as connection metadata. Fail closed when absent —
-		// no silent fallback to shared credentials. (The SDK already
-		// enforces this against the declared auth methods; this is defense
-		// in depth with the typed re-auth signal.)
-		userToken, ok := downstreamToken(ctx)
-		if !ok {
-			return nil, reauthError("no user session available")
+		// The public gateway derives tenant routing and downstream credential
+		// metadata from this invocation context. ArgoCD additionally requires
+		// a per-user SSO session for every action; no shared fallback exists.
+		if !hasDownstreamCredential(ctx) {
+			return nil, pluginsdk.ReauthError(argocd.SSOProvider)
 		}
 
 		// The tunnel correlates acks by command ID; never send an empty one
@@ -169,14 +162,14 @@ func handle(cfg Config, action string) pluginsdk.Handler {
 
 		callCtx, cancel := context.WithTimeout(ctx, cfg.timeout()+10*time.Second)
 		defer cancel()
-		ack, err := cfg.Gateway.InvokeAction(callCtx, gateway.Request{
-			TenantID:  ac.TenantID,
-			ClusterID: clusterID,
-			Command:   cmd,
-			UserToken: userToken,
-		})
+		ack, err := cfg.Gateway.InvokeAction(callCtx, clusterID, cmd)
 		if err != nil {
-			// Gateway unreachable or agent disconnected: fail closed.
+			// Preserve public SDK error codes; unexpected transport failures
+			// remain fail-closed unavailable errors.
+			var pluginErr *pluginsdk.Error
+			if errors.As(err, &pluginErr) {
+				return nil, err
+			}
 			return nil, pluginsdk.Errorf(pluginsdk.CodeUnavailable, "agent gateway invoke failed: %v", err)
 		}
 		res := Result{CommandID: ack.GetCommandId(), Message: ack.GetMessage()}
@@ -190,7 +183,7 @@ func handle(cfg Config, action string) pluginsdk.Handler {
 			// session with the re-auth signal prefix; surface it as a typed
 			// re-auth error so the UI can bootstrap SSO and retry once.
 			if strings.HasPrefix(ack.GetMessage(), argocd.ReauthSignalPrefix) {
-				return nil, reauthError("downstream session expired or unauthorized")
+				return nil, pluginsdk.ReauthError(argocd.SSOProvider)
 			}
 			return nil, pluginsdk.Errorf(pluginsdk.CodeInternal, "%s failed on agent: %s", action, ack.GetMessage())
 		}
@@ -202,15 +195,13 @@ func handle(cfg Config, action string) pluginsdk.Handler {
 	}
 }
 
-// downstreamToken extracts the raw per-user downstream credential from the
-// host-injected connection metadata, stripping any Bearer scheme prefix
-// (case-insensitive per RFC 7235; the gateway hop carries the raw token,
-// not an Authorization header value). The returned value is a credential:
-// never log it.
-func downstreamToken(ctx context.Context) (string, bool) {
+// hasDownstreamCredential rejects absent or scheme-only credentials before
+// command construction. The public SDK performs the actual scheme
+// normalization and metadata forwarding; token material is never logged.
+func hasDownstreamCredential(ctx context.Context) bool {
 	tok, ok := pluginsdk.DownstreamToken(ctx)
 	if !ok {
-		return "", false
+		return false
 	}
 	tok = strings.TrimSpace(tok)
 	if scheme, rest, found := strings.Cut(tok, " "); found && strings.EqualFold(scheme, "bearer") {
@@ -219,25 +210,14 @@ func downstreamToken(ctx context.Context) (string, bool) {
 	// A bare scheme word ("Bearer" with no credential) is not a token:
 	// fail closed rather than forward it downstream as credential material.
 	if tok == "" || strings.EqualFold(tok, "bearer") {
-		return "", false
+		return false
 	}
-	return tok, true
+	return tok != "" && !strings.EqualFold(tok, "bearer")
 }
 
 // reauthError is the typed re-auth/session-expired signal (plan: extension
 // OIDC pass-through): the UI detects details.code=reauth_required and drives
 // the zero-prompt SSO bootstrap, then retries once.
-func reauthError(msg string) *pluginsdk.Error {
-	return &pluginsdk.Error{
-		Code:    pluginsdk.CodeUnauthenticated,
-		Message: "re-authentication required: " + msg,
-		Details: map[string]string{
-			"code":     argocd.ReauthSignalPrefix,
-			"provider": argocd.SSOProvider,
-		},
-	}
-}
-
 // decodeStrict decodes the payload rejecting unknown fields, so callers get
 // an error instead of silently ignored typos.
 func decodeStrict(payload []byte, v any) error {

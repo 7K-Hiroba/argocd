@@ -16,25 +16,29 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
-	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
+	"github.com/7K-Inari/inari-plugin-sdk/host/agentgateway"
 )
 
-// fakeGateway records requests and returns a scripted ack or error.
+// fakeGateway records public Agent Gateway calls and returns a scripted ack or error.
 type fakeGateway struct {
-	last gateway.Request
-	ack  *agentv1.CommandAck
-	err  error
+	clusterID string
+	command   *agentv1.InvokeAction
+	ack       *agentv1.CommandAck
+	err       error
 }
 
-func (f *fakeGateway) InvokeAction(_ context.Context, req gateway.Request) (*agentv1.CommandAck, error) {
-	f.last = req
+var _ agentgateway.Gateway = (*fakeGateway)(nil)
+
+func (f *fakeGateway) InvokeAction(_ context.Context, clusterID string, command *agentv1.InvokeAction) (*agentv1.CommandAck, error) {
+	f.clusterID = clusterID
+	f.command = command
 	return f.ack, f.err
 }
 
 var testAuth = pluginsdk.AuthContext{PrincipalID: "user-1", TenantID: "tenant-acme"}
 var scoping = argocd.Scoping{ManagedProjects: []string{"inari"}}
 
-func build(t *testing.T, gw gateway.Gateway) *testkit.Client {
+func build(t *testing.T, gw agentgateway.Gateway) *testkit.Client {
 	t.Helper()
 	p, err := Build(Config{Gateway: gw, Scoping: scoping})
 	if err != nil {
@@ -112,9 +116,9 @@ func TestDownstreamTokenSchemeStripping(t *testing.T) {
 			if tc.wantReauth {
 				var pe *pluginsdk.Error
 				if !errors.As(err, &pe) || pe.Code != pluginsdk.CodeUnauthenticated {
-					t.Fatalf("injected %q: expected fail-closed reauth, got err=%v hop token=%q", tc.injected, err, gw.last.UserToken)
+					t.Fatalf("injected %q: expected fail-closed reauth, got err=%v", tc.injected, err)
 				}
-				if gw.last.Command != nil {
+				if gw.command != nil {
 					t.Fatal("gateway must not be called without credential material")
 				}
 				return
@@ -122,8 +126,8 @@ func TestDownstreamTokenSchemeStripping(t *testing.T) {
 			if err != nil {
 				t.Fatalf("injected %q: %v", tc.injected, err)
 			}
-			if gw.last.UserToken != tc.want {
-				t.Fatalf("injected %q: want raw token %q on the hop, got %q", tc.injected, tc.want, gw.last.UserToken)
+			if gw.command == nil {
+				t.Fatalf("injected %q: gateway was not called", tc.injected)
 			}
 		})
 	}
@@ -193,12 +197,12 @@ func TestFailsClosedWithoutUserSession(t *testing.T) {
 	if !errors.As(err, &pe) || pe.Code != pluginsdk.CodeUnauthenticated {
 		t.Fatalf("expected CodeUnauthenticated without a user session, got %v", err)
 	}
-	if gw.last.Command != nil {
+	if gw.command != nil {
 		t.Fatal("gateway must not be called without a user session")
 	}
 }
 
-func TestForwardsUserTokenAsMetadataOnly(t *testing.T) {
+func TestDoesNotPlaceUserTokenInCommand(t *testing.T) {
 	gw := &fakeGateway{ack: &agentv1.CommandAck{CommandId: "cmd-1", Result: agentv1.CommandResult_COMMAND_RESULT_APPLIED}}
 	c := build(t, gw)
 	const token = "sso-session-token-xyz"
@@ -209,18 +213,15 @@ func TestForwardsUserTokenAsMetadataOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Invoke: %v", err)
 	}
-	if gw.last.UserToken != token {
-		t.Fatalf("expected raw user token forwarded to gateway, got %q", gw.last.UserToken)
-	}
-	raw, err := proto.Marshal(gw.last.Command)
+	raw, err := proto.Marshal(gw.command)
 	if err != nil {
 		t.Fatalf("marshal command: %v", err)
 	}
 	if bytes.Contains(raw, []byte(token)) {
 		t.Fatal("user token leaked into the command payload")
 	}
-	if gw.last.Command.GetUserCredentialRef() != "" {
-		t.Fatalf("extension must not self-assert user_credential_ref, got %q", gw.last.Command.GetUserCredentialRef())
+	if gw.command.GetUserCredentialRef() != "" {
+		t.Fatalf("extension must not self-assert user_credential_ref, got %q", gw.command.GetUserCredentialRef())
 	}
 }
 
@@ -266,16 +267,15 @@ func TestSyncRoundTrip(t *testing.T) {
 	if res.Outcome != "applied" || res.Message != "synced" {
 		t.Fatalf("result: %+v", res)
 	}
-	// Tenant identity must come from the AuthContext, never from the payload.
-	if gw.last.TenantID != "tenant-acme" || gw.last.ClusterID != "cluster-1" {
-		t.Fatalf("routing: %+v", gw.last)
+	if gw.clusterID != "cluster-1" {
+		t.Fatalf("cluster routing = %q", gw.clusterID)
 	}
-	if gw.last.Command.GetAction() != "sync" { // agent-side verb is bare
+	if gw.command.GetAction() != "sync" { // agent-side verb is bare
 
-		t.Fatalf("command action: %v", gw.last.Command.GetAction())
+		t.Fatalf("command action: %v", gw.command.GetAction())
 	}
-	if gw.last.Command.GetParameters().AsMap()["prune"] != true {
-		t.Fatalf("params not forwarded: %v", gw.last.Command.GetParameters().AsMap())
+	if gw.command.GetParameters().AsMap()["prune"] != true {
+		t.Fatalf("params not forwarded: %v", gw.command.GetParameters().AsMap())
 	}
 }
 
@@ -314,7 +314,7 @@ func TestRejectsUnmanagedProject(t *testing.T) {
 	if !errors.As(err, &pe) || pe.Code != pluginsdk.CodeInvalidArgument {
 		t.Fatalf("expected CodeInvalidArgument, got %v", err)
 	}
-	if gw.last.Command != nil {
+	if gw.command != nil {
 		t.Fatal("gateway must not be called for unmanaged projects")
 	}
 }

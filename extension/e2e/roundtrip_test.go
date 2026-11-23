@@ -3,7 +3,7 @@
 //	plugin (testkit) → Agent Gateway (harness) → agent session →
 //	tenant-local ArgoCD API (fake) → CommandAck → plugin result
 //
-// It runs in-process with bufconn and httptest, so `go test ./e2e` works
+// It runs in-process with the public Connect transport and httptest, so `go test ./e2e` works
 // without Docker. For a real-cluster variant see e2e/kind (kind + ArgoCD +
 // cmd/inari-agentstub).
 package e2e
@@ -12,7 +12,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -20,20 +19,21 @@ import (
 	"testing"
 	"time"
 
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	agentv1 "github.com/7K-Inari/inari-api/gen/go/inari/agent/v1"
+	"github.com/7K-Inari/inari-api/gen/go/inari/extensions/v1/extensionsv1connect"
 	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
+	"github.com/7K-Inari/inari-plugin-sdk/host/agentgateway"
 	"github.com/7K-Inari/inari-plugin-sdk/testkit"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/7K-Hiroba/argocd/extension/e2e/harness"
 	"github.com/7K-Hiroba/argocd/extension/internal/agentstub"
 	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
 	"github.com/7K-Hiroba/argocd/extension/internal/extplugin"
-	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
 )
 
 // fakeArgoCD records requests and serves minimal Application endpoints.
@@ -97,24 +97,20 @@ func startStackWithRecorder(t *testing.T, rec *cmdRecorder) (*testkit.Client, *f
 	t.Cleanup(argoSrv.Close)
 
 	gwSrv := harness.NewServer()
-	lis := bufconn.Listen(1024 * 1024)
-	s := grpc.NewServer()
-	desc := gwSrv.ServiceDesc()
-	s.RegisterService(&desc, gwSrv)
-	go func() { _ = s.Serve(lis) }()
-	t.Cleanup(s.Stop)
-
-	conn, err := grpc.NewClient(
-		"passthrough:///bufconn",
-		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
-			return lis.DialContext(ctx)
-		}),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	rpcServer := connect.NewServer()
+	extensionsv1connect.RegisterAgentGatewayHandler(rpcServer, gwSrv)
+	mux := http.NewServeMux()
+	connecthttp.Mount(mux, rpcServer)
+	gatewayServer := httptest.NewServer(mux)
+	t.Cleanup(gatewayServer.Close)
+	gatewayClient, err := agentgateway.NewClient(agentgateway.Config{
+		BaseURL:     gatewayServer.URL,
+		HTTPClient:  gatewayServer.Client(),
+		TokenSource: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "extension-test-identity", TokenType: "Bearer"}),
+	})
 	if err != nil {
-		t.Fatalf("dial: %v", err)
+		t.Fatalf("build public gateway client: %v", err)
 	}
-	t.Cleanup(func() { _ = conn.Close() })
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -123,7 +119,7 @@ func startStackWithRecorder(t *testing.T, rec *cmdRecorder) (*testkit.Client, *f
 	go harness.RunAgent(ctx, sess, rec.wrap(argo.Execute))
 
 	p, err := extplugin.Build(extplugin.Config{
-		Gateway: gateway.New(conn),
+		Gateway: gatewayClient,
 		Scoping: scopingForTest(),
 	})
 	if err != nil {

@@ -1,23 +1,17 @@
-// Package harness is a test/e2e implementation of the control plane's Agent
-// Gateway tunnel contract (see internal/gateway): it accepts InvokeAction
-// calls from the plugin, routes them by x-inari-cluster metadata to a
-// registered agent session, and relays the CommandAck. It stands in for the
-// M4-W2 server extension host's gateway until that component ships the same
-// endpoint.
+// Package harness provides a test-only Agent Gateway and agent session. It
+// uses the generated public Connect contract; no transport schema is mirrored.
 package harness
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
+	"connectrpc.com/connect/v2"
 	agentv1 "github.com/7K-Inari/inari-api/gen/go/inari/agent/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-
-	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
+	extensionsv1 "github.com/7K-Inari/inari-api/gen/go/inari/extensions/v1"
+	"github.com/7K-Inari/inari-api/gen/go/inari/extensions/v1/extensionsv1connect"
 )
 
 // Session is one connected agent: commands in, acks out.
@@ -41,8 +35,9 @@ func (s *Session) Ack(ack *agentv1.CommandAck) {
 	}
 }
 
-// Server implements the Agent Gateway endpoint.
+// Server implements the generated Agent Gateway handler contract.
 type Server struct {
+	extensionsv1connect.UnimplementedAgentGatewayHandler
 	mu       sync.Mutex
 	sessions map[string]*Session
 	// AgentTimeout bounds the wait for an agent's ack.
@@ -68,70 +63,43 @@ func (s *Server) RegisterAgent(clusterID string) (*Session, func()) {
 	}
 }
 
-// ServiceDesc is the hand-written gRPC service definition for the tunnel
-// contract; registering it on any *grpc.Server serves the endpoint the
-// plugin's gateway.Client dials.
-func (s *Server) ServiceDesc() grpc.ServiceDesc {
-	return grpc.ServiceDesc{
-		ServiceName: "inari.extensions.v1.AgentGateway",
-		HandlerType: (*any)(nil),
-		Methods: []grpc.MethodDesc{{
-			MethodName: "InvokeAction",
-			Handler:    s.invokeHandler,
-		}},
-		Streams:  []grpc.StreamDesc{},
-		Metadata: "inari/extensions/v1/agent_gateway.proto",
+// InvokeAction routes one public command to a connected agent session.
+func (s *Server) InvokeAction(ctx context.Context, cmd *agentv1.InvokeAction) (*agentv1.CommandAck, error) {
+	info, ok := connect.CallInfoForServerContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeInternal, "missing Connect call info")
 	}
-}
-
-func (s *Server) invokeHandler(_ any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
-	cmd := &agentv1.InvokeAction{}
-	if err := dec(cmd); err != nil {
-		return nil, err
-	}
-	info := &grpc.UnaryServerInfo{FullMethod: gateway.InvokeMethod}
-	handler := func(ctx context.Context, req any) (any, error) {
-		return s.invoke(ctx, req.(*agentv1.InvokeAction))
-	}
-	if interceptor != nil {
-		return interceptor(ctx, cmd, info, handler)
-	}
-	return handler(ctx, cmd)
-}
-
-func (s *Server) invoke(ctx context.Context, cmd *agentv1.InvokeAction) (*agentv1.CommandAck, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
-	cluster := first(md[gateway.MetadataCluster])
-	tenant := first(md[gateway.MetadataTenant])
+	header := info.RequestHeader()
+	cluster := header.Get(extensionsv1.MetadataCluster)
+	tenant := header.Get(extensionsv1.MetadataTenant)
 	if cluster == "" || tenant == "" {
-		return nil, status.Error(codes.InvalidArgument, "x-inari-tenant and x-inari-cluster metadata are required")
+		return nil, connect.NewError(connect.CodeInvalidArgument, "tenant and cluster metadata are required")
+	}
+	if header.Get("Authorization") == "" {
+		return nil, connect.NewError(connect.CodeUnauthenticated, "extension identity is required")
 	}
 
 	s.mu.Lock()
 	sess, ok := s.sessions[cluster]
 	s.mu.Unlock()
 	if !ok {
-		// Fail closed: agent disconnected.
-		return nil, status.Errorf(codes.Unavailable, "no connected agent for cluster %q (tenant %q)", cluster, tenant)
+		return nil, connect.NewError(connect.CodeUnavailable, fmt.Sprintf("no connected agent for cluster %q", cluster))
 	}
 
 	ch := make(chan *agentv1.CommandAck, 1)
 	sess.mu.Lock()
 	if cmd.GetCommandId() == "" {
 		sess.mu.Unlock()
-		return nil, status.Error(codes.InvalidArgument, "commandId is required for ack correlation")
+		return nil, connect.NewError(connect.CodeInvalidArgument, "commandId is required for ack correlation")
 	}
 	if _, dup := sess.acks[cmd.GetCommandId()]; dup {
-		// Refuse to clobber an in-flight waiter: a duplicate ID would
-		// mis-correlate the ack to the wrong caller.
 		sess.mu.Unlock()
-		return nil, status.Errorf(codes.Aborted, "duplicate commandId %q already in flight", cmd.GetCommandId())
+		return nil, connect.NewError(connect.CodeAborted, fmt.Sprintf("duplicate commandId %q already in flight", cmd.GetCommandId()))
 	}
-	// Per-user credential (W2/W3 contract mirror): the raw token arrives as
-	// x-inari-user-credential hop metadata; the control plane mints a vault
-	// reference and only that reference reaches the persisted/dispatched
-	// command payload. The raw token never crosses to the agent.
-	if cred := first(md[gateway.MetadataUserCredential]); cred != "" {
+	// Raw user credentials arrive only on this in-memory hop. The test
+	// control plane mints a vault reference before the command reaches the
+	// agent, exactly as the production contract requires.
+	if credential := header.Get(extensionsv1.MetadataUserCredential); credential != "" {
 		cmd.UserCredentialRef = "vaultref/" + cmd.GetCommandId()
 	}
 	sess.acks[cmd.GetCommandId()] = ch
@@ -151,7 +119,7 @@ func (s *Server) invoke(ctx context.Context, cmd *agentv1.InvokeAction) (*agentv
 	case ack := <-ch:
 		return ack, nil
 	case <-time.After(s.AgentTimeout):
-		return nil, status.Errorf(codes.DeadlineExceeded, "agent did not ack command %q", cmd.GetCommandId())
+		return nil, connect.NewError(connect.CodeDeadlineExceeded, fmt.Sprintf("agent did not ack command %q", cmd.GetCommandId()))
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -168,11 +136,4 @@ func RunAgent(ctx context.Context, sess *Session, executor func(context.Context,
 			sess.Ack(executor(ctx, cmd))
 		}
 	}
-}
-
-func first(v []string) string {
-	if len(v) == 0 {
-		return ""
-	}
-	return v[0]
 }

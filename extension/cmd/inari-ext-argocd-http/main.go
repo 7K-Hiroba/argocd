@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
@@ -32,7 +31,7 @@ import (
 
 	"github.com/7K-Hiroba/argocd/extension/internal/argocd"
 	"github.com/7K-Hiroba/argocd/extension/internal/extplugin"
-	"github.com/7K-Hiroba/argocd/extension/internal/gateway"
+	"github.com/7K-Hiroba/argocd/extension/internal/runtimeconfig"
 )
 
 func main() {
@@ -42,24 +41,14 @@ func main() {
 }
 
 func run() error {
-	cfg := extplugin.Config{
-		Scoping: argocd.Scoping{ManagedProjects: managedProjects()},
-		Timeout: actionTimeout(),
+	gateway, err := runtimeconfig.GatewayFromEnv(context.Background())
+	if err != nil {
+		return err
 	}
-	if addr := os.Getenv("INARI_AGENT_GATEWAY_ADDR"); addr != "" {
-		gw, err := gateway.Dial(gateway.Config{
-			Addr:               addr,
-			Insecure:           os.Getenv("INARI_AGENT_GATEWAY_INSECURE") == "true",
-			TLSServerName:      os.Getenv("INARI_AGENT_GATEWAY_TLS_NAME"),
-			LegacyToken:        legacyGateToken(),
-			LegacyTokenEnabled: legacyGateTokenEnabled(),
-		})
-		if err != nil {
-			return err
-		}
-		cfg.Gateway = gw
-	} else {
-		log.Print("INARI_AGENT_GATEWAY_ADDR unset: actions will fail closed with CodeUnavailable")
+	cfg := extplugin.Config{
+		Gateway: gateway,
+		Scoping: argocd.Scoping{ManagedProjects: runtimeconfig.ManagedProjects()},
+		Timeout: runtimeconfig.ActionTimeout(),
 	}
 
 	p, err := extplugin.Build(cfg)
@@ -93,13 +82,6 @@ func (a connectAdapter) GetInfo(ctx context.Context, req *pluginv1.GetInfoReques
 	r, err := a.s.GetInfo(ctx, req)
 	if err != nil {
 		return nil, err
-	}
-	// COMPAT (inari-server <= 2.0.0): the released control plane compares
-	// api_version against the go-plugin wire version "1" instead of the
-	// contract version (fixed by 7K-Inari/inari-server cf4ed87). Remove this
-	// override once the platform runs the fixed server.
-	if v := os.Getenv("INARI_COMPAT_API_VERSION"); v != "" && r.GetInfo() != nil {
-		r.Info.ApiVersion = v
 	}
 	return r, nil
 }
@@ -135,10 +117,6 @@ func (a connectAdapter) HealthCheck(ctx context.Context, req *pluginv1.HealthChe
 const (
 	headerAuthMethod              = "X-Inari-Auth-Method"
 	headerDownstreamAuthorization = "X-Inari-Downstream-Authorization"
-	// headerReauth signals which third-party provider the user must
-	// re-authenticate with (oidc-sso-session bootstrap/expiry) — same
-	// contract as the control plane's extension proxy.
-	headerReauth = "X-Inari-Reauth"
 )
 
 // actionsHandler maps the proxy-forwarded POST /actions/<action> onto the
@@ -179,6 +157,10 @@ func actionsHandler(p *pluginsdk.Plugin) http.HandlerFunc {
 		if md, ok := metadata.FromOutgoingContext(ctx); ok {
 			ctx = metadata.NewIncomingContext(ctx, md)
 		}
+		if strings.TrimSpace(r.Header.Get(headerDownstreamAuthorization)) == "" {
+			pluginsdk.WriteHTTPError(w, pluginsdk.ReauthError(argocd.SSOProvider))
+			return
+		}
 		resp, err := s.Invoke(ctx, &pluginv1.InvokeRequest{
 			Action: action,
 			AuthContext: &pluginv1.AuthContext{
@@ -193,87 +175,10 @@ func actionsHandler(p *pluginsdk.Plugin) http.HandlerFunc {
 			return
 		}
 		if pe := resp.GetError(); pe != nil {
-			// Typed re-auth/session-expired signal: byte-identical shape to
-			// the control plane's extension proxy so the UI's zero-prompt
-			// SSO bootstrap + single retry works uniformly in dial mode.
-			if pe.GetCode() == pluginv1.ErrorCode_ERROR_CODE_UNAUTHENTICATED {
-				w.Header().Set(headerReauth, argocd.SSOProvider)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"detail":"re-authentication required","code":"` + argocd.ReauthSignalPrefix + `"}`))
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(httpStatusFor(pe.GetCode()))
-			_, _ = w.Write([]byte(`{"detail":"` + jsonEscape(pe.GetMessage()) + `","code":"` + pe.GetCode().String() + `"}`))
+			pluginsdk.WriteHTTPError(w, pluginsdk.ErrorFromProto(pe))
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(resp.GetResult())
 	}
-}
-
-func httpStatusFor(c pluginv1.ErrorCode) int {
-	switch c {
-	case pluginv1.ErrorCode_ERROR_CODE_INVALID_ARGUMENT:
-		return http.StatusBadRequest
-	case pluginv1.ErrorCode_ERROR_CODE_UNAUTHENTICATED:
-		return http.StatusUnauthorized
-	case pluginv1.ErrorCode_ERROR_CODE_PERMISSION_DENIED:
-		return http.StatusForbidden
-	case pluginv1.ErrorCode_ERROR_CODE_NOT_FOUND:
-		return http.StatusNotFound
-	case pluginv1.ErrorCode_ERROR_CODE_FAILED_PRECONDITION:
-		return http.StatusPreconditionFailed
-	case pluginv1.ErrorCode_ERROR_CODE_UNAVAILABLE:
-		return http.StatusServiceUnavailable
-	default:
-		return http.StatusInternalServerError
-	}
-}
-
-func jsonEscape(s string) string {
-	r := strings.NewReplacer(`\`, `\\`, `"`, `\"`, "\n", `\n`)
-	return r.Replace(s)
-}
-
-// legacyGateToken returns the deprecated shared extension-gateway gate token
-// (pre-W2 control planes). Inert unless legacyGateTokenEnabled is true.
-func legacyGateToken() string { return os.Getenv("INARI_EXTENSION_GATEWAY_TOKEN") }
-
-// legacyGateTokenEnabled reports whether the deprecated shared gate token
-// path was explicitly opted into (INARI_LEGACY_GATEWAY_TOKEN=true). Default
-// off: per-user OIDC SSO sessions are the supported auth path and there is
-// no silent fallback to shared credentials.
-func legacyGateTokenEnabled() bool {
-	if os.Getenv("INARI_LEGACY_GATEWAY_TOKEN") != "true" {
-		return false
-	}
-	if os.Getenv("INARI_EXTENSION_GATEWAY_TOKEN") != "" {
-		log.Print("WARNING: INARI_LEGACY_GATEWAY_TOKEN=true: using the deprecated shared extension gate token (pre-W2 compatibility); migrate the control plane to per-user OIDC SSO sessions")
-	}
-	return true
-}
-
-func managedProjects() []string {
-	raw := os.Getenv("INARI_MANAGED_PROJECTS")
-	if raw == "" {
-		return []string{"inari"}
-	}
-	var out []string
-	for _, p := range strings.Split(raw, ",") {
-		if p = strings.TrimSpace(p); p != "" {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-func actionTimeout() time.Duration {
-	if raw := os.Getenv("INARI_ACTION_TIMEOUT"); raw != "" {
-		if d, err := time.ParseDuration(raw); err == nil {
-			return d
-		}
-	}
-	return 0
 }
