@@ -1,0 +1,7 @@
+name: argocd
+version: 0.1.0
+channel: incubating
+description: Minimal component scaffold for argocd
+kind: component
+observability:
+  manifest: observability/observability.yaml

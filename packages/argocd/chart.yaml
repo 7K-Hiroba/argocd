@@ -1,0 +1,6 @@
+repoURL: oci://ghcr.io/7k-hiroba/argocd/charts
+chart: argocd
+namespace: argocd
+channels:
+  incubating: 0.1.0
+  stable: 0.1.0

@@ -1,0 +1,8 @@
+image:
+  repository: argocd
+  tag: ci
+  pullPolicy: Never
+observability:
+  enabled: false
+  rules:
+    enabled: false
