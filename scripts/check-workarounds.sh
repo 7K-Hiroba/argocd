@@ -11,7 +11,7 @@ done
 ! grep -R '/api/extensions/' ui/src --include='*.ts' --include='*.tsx' || fail 'manual UI extension invocation'
 ! grep -R -E 'build-sdk|postinstall|webpack --mode' ui/package.json || fail 'SDK postinstall or custom build'
 ! grep -R -E 'httpStatusFor|jsonEscape|func reauthError' extension/cmd extension/internal --include='*.go' || fail 'handwritten re-auth mapper'
-! grep -R -E 'releases/download|gh release upload' .github ui extension.yaml || fail 'GitHub Release UI remote or upload'
+! grep -R --exclude-dir=node_modules -E 'releases/download|gh release upload' .github ui extension.yaml || fail 'GitHub Release UI remote or upload'
 ! grep -R -E 'uses: .*@(main|v1|latest)([[:space:]]|$)' .github/workflows || fail 'mutable workflow reference'
 
 echo 'no workaround or mutable release patterns found'
