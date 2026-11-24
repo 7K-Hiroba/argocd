@@ -6,19 +6,14 @@
   "tag-separator": "-v",
   "pull-request-title-pattern": "chore: release ${component} ${version}",
   "packages": {
-    "extension": {
-      "release-type": "go",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
-      "extra-files": ["../extension.yaml"]
-    },
     "charts/argocd": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "extra-files": ["Chart.yaml"],
+      "extra-files": [
+        "Chart.yaml"
+      ],
       "component": "chart-argocd"
     },
     "packages/argocd": {
@@ -26,7 +21,9 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "extra-files": ["package.yaml"],
+      "extra-files": [
+        "package.yaml"
+      ],
       "component": "package-argocd"
     },
     "templates/argocd-application": {
@@ -34,15 +31,28 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "extra-files": ["template.yaml"],
+      "extra-files": [
+        "template.yaml"
+      ],
       "component": "template-argocd-application"
+    },
+    "extension": {
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "../extension.yaml"
+      ]
     },
     "packages/observability-pack": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "extra-files": ["package.yaml"],
+      "extra-files": [
+        "package.yaml"
+      ],
       "component": "package-observability-pack"
     },
     "ui": {

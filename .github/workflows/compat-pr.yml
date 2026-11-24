@@ -3,5 +3,5 @@ on: {pull_request: {branches: [main]}}
 permissions: {contents: read}
 jobs:
   compat:
-    uses: 7K-Hiroba/workflows/.github/workflows/compat-check.yml@90146feb7f553ff51fa4d511c65f5602eaaaf0d4 # v2.0.0-candidate.90146fe (unreleased); merged workflows PRs #39/#40/#41
+    uses: 7K-Hiroba/workflows/.github/workflows/compat-check.yml@f092eab6bb07de64a2d6f2e35ac4c65fca794f76 # v2.0.3
     with: {root: ., mode: pr}

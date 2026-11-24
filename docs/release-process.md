@@ -15,6 +15,6 @@ Release-please opens one PR with independent components. Do not merge a Release 
 
 Every deployable artifact requires immutable build/push, digest capture, cosign keyless signature, SLSA v1 provenance, release-linked signed test evidence, independent verification, and only then channel/index/finalization. Index `latest` is not a deployment pin. No GitHub-Release UI asset, classic Helm index, or mutable latest/edge deployment is permitted.
 
-The current workflow callers use merged PRs #39/#40/#41 main SHA `90146feb7f553ff51fa4d511c65f5602eaaaf0d4` and are explicitly marked as an unreleased v2.0.0 candidate. Before protected publication, adopt the exact signed v2.0.0 workflow release R containing that implementation and rerun affected checks. Do not treat this merged-main candidate as signed R or use it for final production publication.
+The current workflow callers use exact signed R `f092eab6bb07de64a2d6f2e35ac4c65fca794f76` (`v2.0.3`). Protected signing run 45300302921 verified the release with OIDC/gitsign; annotated tag object `77c80969523422d596d39899d8014da8cfc87889` targets R. This pin remains fixed even if workflows main advances; no mutable main/tag is substituted. Protected ArgoCD publication remains a separate owner/admin gate and is not performed by this migration.
 
 Chart repair uses the standard `chart-repair.yml` workflow against an existing exact annotated tag. It cannot move channels or rewrite history.
