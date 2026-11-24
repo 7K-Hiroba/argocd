@@ -15,7 +15,7 @@
 
 - [x] Exact candidate SHAs recorded in `docs/dependencies.md`.
 - [x] Release train reports exact merged main/signed-release SHAs; candidate pins revalidated/replaced without marking candidates as merged.
-- [x] Final workflow SHA is signed R `f092eab6bb07de64a2d6f2e35ac4c65fca794f76` (`v2.0.3`, protected run 45300302921), not an open PR head.
+- [x] Final workflow SHA is signed R `77fac4b056ec7d97fb6cd64860f8922fa0931024` (`v2.1.0`, protected run 45490115693), not an open PR head.
 
 ## Required acceptance evidence still open
 

@@ -4,7 +4,7 @@ This repository binds exact dependency commits. **Open candidate PRs are not mer
 
 | Input | Exact SHA/version | Status at migration |
 | --- | --- | --- |
-| 7K-Hiroba/workflows | `f092eab6bb07de64a2d6f2e35ac4c65fca794f76` / `v2.0.3` | Signed R; protected run 45300302921 and OIDC/gitsign verification passed; signed tag object `77c80969523422d596d39899d8014da8cfc87889` targets R |
+| 7K-Hiroba/workflows | `77fac4b056ec7d97fb6cd64860f8922fa0931024` / `v2.1.0` | Signed R; protected run 45490115693 and OIDC/gitsign verification passed; signed tag object `76eecf9e275b1857e6f98ac7b64894fc2022e626` targets R; same-R chart lifecycle rehearsal 45484229304 passed |
 | 7K-Hiroba/monitoring | `b1769465757aa0479b18193d47f4a45a60ebd406` | Reviewed candidate PR #2; post-Alloy and readiness inputs, not deployed |
 | 7K-Inari/inari-cli | `c79c171dd7b672184087a36697e19e26d1c20559` | Reviewed candidate PR #61; generated the `non-stack` skeleton |
 | 7K-Inari/inari-api | `34d8e0db977eb29ac04da8f3eece5224dbcb64a7` / `v0.8.0-34d8e0d` | Merged PR #90 main SHA and exact public tag, consumed by the server candidate for observability profile interoperability |
@@ -17,4 +17,4 @@ This repository binds exact dependency commits. **Open candidate PRs are not mer
 | @7k-inari/ui-plugin-sdk | `0.1.9` | Exact npm registry release with canonical build and host contracts |
 | workflow release baseline | `v1.1.0` / `b26b53f5ba58a27d1973fec6dfa6469d0b93ba62` | Previously signed release; does not contain the merged PRs #39/#40/#41 implementation used by current callers |
 
-Workflow callers use exact signed R `f092eab6bb07de64a2d6f2e35ac4c65fca794f76` with `v2.0.3` comments. Protected signing run 45300302921 verified the annotated tag with OIDC/gitsign; tag object `77c80969523422d596d39899d8014da8cfc87889` targets R and `update_major=false` left aliases unchanged. The previously signed v1.1.0 tag and commit remain immutable. No mutable `main`, `v1`, `v2`, `latest`, or `edge` reference is used for deployment.
+Workflow callers use exact signed R `77fac4b056ec7d97fb6cd64860f8922fa0931024` with `v2.1.0` comments. Protected signing run 45490115693 verified the annotated tag with OIDC/gitsign; tag object `76eecf9e275b1857e6f98ac7b64894fc2022e626` targets R and `update_major=false` left aliases unchanged. All six same-R rehearsals passed, including the non-plugin Helm chart lifecycle run 45484229304. Previously signed tags and commits remain immutable. No mutable `main`, `v1`, `v2`, `latest`, or `edge` reference is used for deployment.
