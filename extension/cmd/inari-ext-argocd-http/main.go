@@ -119,6 +119,7 @@ func (a connectAdapter) HealthCheck(ctx context.Context, req *pluginv1.HealthChe
 const (
 	headerAuthMethod              = "X-Inari-Auth-Method"
 	headerDownstreamAuthorization = "X-Inari-Downstream-Authorization"
+	maxActionPayloadBytes         = 1 << 20
 )
 
 // actionsHandler maps the proxy-forwarded POST /actions/<action> onto the
@@ -136,9 +137,13 @@ func actionsHandler(p *pluginsdk.Plugin) http.HandlerFunc {
 			http.Error(w, `{"detail":"action name required"}`, http.StatusBadRequest)
 			return
 		}
-		payload, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+		payload, err := io.ReadAll(io.LimitReader(r.Body, maxActionPayloadBytes+1))
 		if err != nil {
 			http.Error(w, `{"detail":"read body"}`, http.StatusBadRequest)
+			return
+		}
+		if len(payload) > maxActionPayloadBytes {
+			http.Error(w, `{"detail":"request body too large"}`, http.StatusRequestEntityTooLarge)
 			return
 		}
 		if len(payload) == 0 {

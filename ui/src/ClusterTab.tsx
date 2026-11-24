@@ -18,25 +18,34 @@ export function HealthBadge({ health }: { health?: string }) {
  * the host console loads the stylesheet and tokens. */
 export function ArgoCDHealthTab({ cluster }: ClusterTabSlotProps) {
   const { current } = useTenant();
-  const [instances, setInstances] = useState<ResourceInstance[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
+  const scopeKey = current ? `${current.orgId}/${cluster.id}` : null;
+  const [result, setResult] = useState<{
+    scopeKey: string;
+    instances: ResourceInstance[];
+    error?: string;
+  }>();
 
   useEffect(() => {
-    if (!current) {
-      setLoading(false);
-      return;
-    }
+    if (!current || scopeKey === null) return;
     let cancelled = false;
-    setLoading(true);
     listClusterInstances(current.orgId, cluster.id)
-      .then((list) => !cancelled && setInstances(list))
-      .catch((e: Error) => !cancelled && setError(e.message))
-      .finally(() => !cancelled && setLoading(false));
+      .then((list) => {
+        if (!cancelled) setResult({ scopeKey, instances: list });
+      })
+      .catch((e: Error) => {
+        if (!cancelled) setResult({ scopeKey, instances: [], error: e.message });
+      });
     return () => {
       cancelled = true;
     };
-  }, [current, cluster.id]);
+  }, [current, cluster.id, scopeKey]);
+
+  // Results belong to exactly one tenant/cluster scope. Keying them prevents
+  // a previous tenant's inventory or error from rendering during a transition.
+  const scopedResult = result?.scopeKey === scopeKey ? result : undefined;
+  const instances = scopedResult?.instances ?? [];
+  const error = scopedResult?.error;
+  const loading = scopeKey !== null && scopedResult === undefined;
 
   return (
     <section className="card">
