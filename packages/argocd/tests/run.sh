@@ -8,7 +8,9 @@ RENDERED=$(mktemp)
 trap 'rm -f "$RENDERED"' EXIT
 
 # Build from Chart.lock so a clean runner uses the reviewed dependency selection
-# without re-resolving or rewriting the lockfile.
+# without re-resolving or rewriting the lockfile. Helm still requires the
+# repository definition even when the dependency version is locked.
+helm repo add argo https://argoproj.github.io/argo-helm >/dev/null
 helm dependency build "$CHART" >/dev/null
 helm template argocd "$CHART" --namespace argocd \
   --api-versions monitoring.coreos.com/v1 \
