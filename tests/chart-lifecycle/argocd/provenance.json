@@ -1,0 +1,27 @@
+{
+  "generator": {
+    "archiveCanonicalization": "sorted members, normalized tar metadata, zero gzip mtime",
+    "command": "WF=<signed-R-v2.1.0-checkout> PYTHON=<workflow-python> HELM=<checksum-verified-pinned-helm> ./generate.sh",
+    "helmArchiveSha256": "ee88b3c851ae6466a3de507f7be73fe94d54cbf2987cbaa3d1a3832ea331f2cd",
+    "helmVersion": "3.17.3",
+    "sourceFileMtimes": "unix-epoch",
+    "workflowSha": "77fac4b056ec7d97fb6cd64860f8922fa0931024"
+  },
+  "packages": [
+    {
+      "chartVersion": "0.0.9",
+      "file": "previous.tgz",
+      "phase": "install",
+      "sha256": "sha256:b47c6d4f5085c7fd46fdff4d489755edc4aaa9de5a2146ea00cc2afb742a3b10",
+      "source": "tests/chart-lifecycle/argocd/previous-chart"
+    },
+    {
+      "chartVersion": "0.1.0",
+      "file": "current.tgz",
+      "phase": "upgrade",
+      "sha256": "sha256:f3a34a31fd671f77f9101524dca9ceba82b756bcd6f11b547b563594b8ed2b05",
+      "source": "charts/argocd"
+    }
+  ],
+  "schema": "inari.chart-lifecycle-fixture-provenance.v1"
+}
