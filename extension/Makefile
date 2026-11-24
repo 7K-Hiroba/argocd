@@ -10,14 +10,14 @@ vet:
 	go vet ./...
 
 lint: vet
-	gofmt -l .
+	test -z "$$(gofmt -l .)"
 
 ui-build:
-	npm --prefix ui ci
-	npm --prefix ui run build
+	npm --prefix ../ui ci
+	npm --prefix ../ui run build
 
 ui-test:
-	npm --prefix ui test
+	npm --prefix ../ui test
 
 # In-process round trip (no Docker required).
 e2e:

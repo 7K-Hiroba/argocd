@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { act, createElement } from 'react';
 
 import extension from '../src/index';
+import packageJson from '../package.json';
 import { invokeAction, argocdAppRef } from '../src/api';
 import { runSync, runRefresh, runRollback } from '../src/actions';
 import { ArgoCDHealthTab, HealthBadge } from '../src/ClusterTab';
@@ -41,6 +42,7 @@ describe('extension manifest (blueprint contract)', () => {
   it('registers name, kind and all five slots', () => {
     expect(extension.manifest.name).toBe('inari-ext-argocd');
     expect(extension.manifest.kind).toBe('ui');
+    expect(extension.manifest.version).toBe(packageJson.version);
     const slots = extension.manifest.slots.map((s: { kind: string; name: string }) => `${s.kind}:${s.name}`);
     expect(slots).toEqual([
       'cluster-tab:argocd-health',

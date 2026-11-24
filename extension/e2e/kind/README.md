@@ -36,6 +36,6 @@ ArgoCD install manifest and the sample guestbook repo.
 | `inari-e2e-gateway` | control-plane Agent Gateway + agent stream bridge | `cmd/inari-e2e-gateway`, `e2e/harness` |
 | agent session loop | `inari-agent` imperative-op handler | `internal/agentstub` |
 
-The gateway ↔ plugin contract (`/inari.extensions.v1.AgentGateway/InvokeAction`)
-is the in-repo reference for the contract that should move into `inari-api`
-(see README "SDK gaps").
+The gateway ↔ plugin contract is the generated public `inari-api` Connect
+contract, consumed through the public Agent Gateway SDK. The harness contains
+only test transport and session orchestration, not a mirrored service schema.

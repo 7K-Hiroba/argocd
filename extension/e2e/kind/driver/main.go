@@ -14,6 +14,7 @@ import (
 
 	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
 	"github.com/7K-Inari/inari-plugin-sdk/host"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -46,6 +47,10 @@ func main() {
 	fmt.Printf("plugin %s@%s (contract %s) handshook OK\n", info.GetName(), info.GetVersion(), info.GetApiVersion())
 
 	auth := pluginsdk.AuthContext{PrincipalID: "e2e-driver", TenantID: "tenant-e2e"}
+	actionCtx := metadata.AppendToOutgoingContext(ctx,
+		pluginsdk.HeaderAuthMethod, pluginsdk.AuthMethodOIDCSSOSession.String(),
+		pluginsdk.HeaderDownstreamAuthorization, "Bearer e2e-user-session",
+	)
 	app := map[string]any{"name": envOr("E2E_APP_NAME", "guestbook"), "namespace": "argocd", "project": "inari"}
 
 	type step struct {
@@ -64,7 +69,7 @@ func main() {
 	}
 	for _, s := range steps {
 		payload, _ := json.Marshal(s.payload)
-		resp, err := client.Invoke(ctx, s.action, auth, payload)
+		resp, err := client.Invoke(actionCtx, s.action, auth, payload)
 		if err != nil {
 			log.Fatalf("FAIL %s: %v", s.action, err)
 		}
@@ -76,7 +81,7 @@ func main() {
 		"clusterId": clusterID,
 		"app":       map[string]any{"name": "guestbook", "namespace": "argocd", "project": "default"},
 	})
-	if _, err := client.Invoke(ctx, "argocd.sync", auth, payload); err == nil {
+	if _, err := client.Invoke(actionCtx, "argocd.sync", auth, payload); err == nil {
 		log.Fatal("FAIL: sync on unmanaged project 'default' was not rejected")
 	}
 	fmt.Println("PASS scoping: unmanaged project rejected")

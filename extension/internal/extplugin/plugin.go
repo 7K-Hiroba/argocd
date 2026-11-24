@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -223,7 +224,13 @@ func hasDownstreamCredential(ctx context.Context) bool {
 func decodeStrict(payload []byte, v any) error {
 	dec := json.NewDecoder(bytesReader(payload))
 	dec.DisallowUnknownFields()
-	return dec.Decode(v)
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
+		return fmt.Errorf("payload must contain exactly one JSON value")
+	}
+	return nil
 }
 
 // newCommandID generates a random command ID for ack correlation when the

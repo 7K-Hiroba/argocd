@@ -332,6 +332,14 @@ func TestRejectsUnknownFields(t *testing.T) {
 	}
 }
 
+func TestDecodeStrictRejectsTrailingJSON(t *testing.T) {
+	payload := []byte(`{"clusterId":"cluster-1","app":{"name":"a","namespace":"argocd","project":"inari"}} {}`)
+	var in argocd.SyncInput
+	if err := decodeStrict(payload, &in); err == nil {
+		t.Fatal("expected a second JSON value to be rejected")
+	}
+}
+
 func TestAgentFailureSurfaces(t *testing.T) {
 	c := build(t, &fakeGateway{ack: &agentv1.CommandAck{
 		CommandId: "cmd-9",

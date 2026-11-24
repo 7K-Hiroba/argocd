@@ -8,5 +8,4 @@ export default defineConfig({
     // React resolve its production build where act() is unavailable.
     env: { NODE_ENV: 'test' },
   },
-  esbuild: { jsx: 'automatic' },
 });

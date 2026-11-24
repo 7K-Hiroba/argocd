@@ -7,9 +7,9 @@ CHART="$ROOT/charts/argocd"
 RENDERED=$(mktemp)
 trap 'rm -f "$RENDERED"' EXIT
 
-# dependency update also supports clean runners without a preconfigured Helm repo;
-# Chart.yaml and Chart.lock keep the selected upstream version and digest immutable.
-helm dependency update "$CHART" >/dev/null
+# Build from Chart.lock so a clean runner uses the reviewed dependency selection
+# without re-resolving or rewriting the lockfile.
+helm dependency build "$CHART" >/dev/null
 helm template argocd "$CHART" --namespace argocd \
   --api-versions monitoring.coreos.com/v1 \
   --values "$PACKAGE_DIR/values-defaults.yaml" > "$RENDERED"

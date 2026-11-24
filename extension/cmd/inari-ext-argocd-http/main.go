@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
@@ -69,7 +70,8 @@ func run() error {
 		addr = ":8080"
 	}
 	log.Printf("inari-ext-argocd-http: dial mode listening on %s (contract at /%s/)", addr, pluginv1connect.PluginContractServiceName)
-	return http.ListenAndServe(addr, mux) //nolint:gosec // test/dev server; platform deployments sit behind the control-plane proxy
+	server := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	return server.ListenAndServe()
 }
 
 // connectAdapter bridges the SDK's gRPC-shaped service to the ConnectRPC

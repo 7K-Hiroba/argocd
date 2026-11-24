@@ -6,7 +6,7 @@
   "properties": {
     "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "repoURL": {"type": "string", "pattern": "^https://"},
-    "revision": {"type": "string", "minLength": 1, "not": {"const": "HEAD"}},
+    "revision": {"type": "string", "minLength": 1, "not": {"enum": ["HEAD", "latest"]}},
     "path": {"type": "string", "minLength": 1, "not": {"pattern": "(^|/)\\.\\.(/|$)"}},
     "destinationNamespace": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "project": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}

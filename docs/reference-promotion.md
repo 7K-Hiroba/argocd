@@ -19,9 +19,10 @@
 
 ## Required acceptance evidence still open
 
-- [ ] Hosted PR and nightly backend compatibility lanes pass.
-- [ ] Hosted browser slot coverage passes all five slots (local harness is pending; see diagnostics).
-- [ ] Hosted KRO and actual Argo CD chart runtime lanes pass (local kind environment could not start).
+- [x] Hosted PR backend compatibility lanes pass at migration head `31ae2f8` (run 45303387570).
+- [ ] Nightly backend/browser edge compatibility passes after the workflow is available on `main`; this remains an explicit post-merge gate.
+- [x] Hosted browser slot coverage passes all five slots (run 45303387570).
+- [x] Hosted KRO, chart install, and actual Argo CD runtime smoke lanes pass (runs 45303387750, 45303387571 attempt 2, and 45303387656).
 - [ ] Stable signed artifacts have cosign/digest/SLSA/test-evidence verification receipts.
 - [ ] Exact artifacts admit through trusted source sync and deploy/render/suite admission, including negative checks.
 - [ ] SDK-only clean build is re-run at the final head.

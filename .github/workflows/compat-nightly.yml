@@ -9,7 +9,7 @@ jobs:
     with: {root: ., mode: nightly}
     permissions: {contents: read, actions: read}
   notify:
-    if: needs.compat.outputs.status == 'failure'
+    if: always() && needs.compat.outputs.status == 'failure'
     needs: [compat]
     runs-on: ubuntu-latest
     permissions: {contents: read, issues: write}
