@@ -14,3 +14,6 @@ done
 kubectl get configmap argocd-overview -n default
 kubectl get configmap argocd-folder -n default
 kubectl get prometheusrule argocd-central -n default
+kubectl get prometheusrule argocd-local -n default
+kubectl get configmap argocd-central-rules -n default
+kubectl get configmap argocd-local-rules -n default
