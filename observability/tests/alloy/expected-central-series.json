@@ -1,0 +1,16 @@
+{
+  "fixtureVersion": "alloy-v1.13.0",
+  "reviewRequired": true,
+  "sourceConfig": "config.river",
+  "metric": "argocd_app_info",
+  "labels": {
+    "cluster": "kind-ci",
+    "instance": "ci",
+    "job": "argocd",
+    "org": "ci",
+    "namespace": "argocd",
+    "health_status": "Degraded",
+    "sync_status": "OutOfSync"
+  },
+  "value": 1
+}

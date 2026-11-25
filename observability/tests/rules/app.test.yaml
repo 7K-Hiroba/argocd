@@ -1,0 +1,61 @@
+evaluation_interval: 1m
+rule_files:
+  - ../../rules/app.yaml
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'argocd_app_info{org="ci",cluster="kind-ci",job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"}'
+        values: '1 1 1 1 1 1 1 1 1 1 1'
+    promql_expr_test:
+      - expr: argocd:applications:degraded
+        eval_time: 0m
+        exp_samples:
+          - labels: 'argocd:applications:degraded{org="ci",cluster="kind-ci",job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"}'
+            value: 1
+      - expr: argocd:applications:out_of_sync
+        eval_time: 0m
+        exp_samples:
+          - labels: 'argocd:applications:out_of_sync{org="ci",cluster="kind-ci",job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"}'
+            value: 1
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDApplicationDegraded
+        exp_alerts:
+          - exp_labels:
+              alertname: ArgoCDApplicationDegraded
+              app: argocd
+              org: ci
+              cluster: kind-ci
+              job: argocd
+              instance: ci
+              namespace: argocd
+              health_status: Degraded
+              sync_status: OutOfSync
+              severity: critical
+            exp_annotations:
+              summary: One or more Argo CD applications are Degraded
+      - eval_time: 10m
+        alertname: ArgoCDApplicationOutOfSync
+        exp_alerts:
+          - exp_labels:
+              alertname: ArgoCDApplicationOutOfSync
+              app: argocd
+              org: ci
+              cluster: kind-ci
+              job: argocd
+              instance: ci
+              namespace: argocd
+              health_status: Degraded
+              sync_status: OutOfSync
+              severity: critical
+            exp_annotations:
+              summary: One or more Argo CD applications are out of sync
+  - interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDApplicationDegraded
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: ArgoCDApplicationOutOfSync
+        exp_alerts: []

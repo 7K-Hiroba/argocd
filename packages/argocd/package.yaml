@@ -1,0 +1,11 @@
+version: 1.3.0
+channel: stable
+type: platform-app
+target: platform
+description: >-
+  Argo CD for tenant-local GitOps root applications and native AppProjects,
+  delivered through the source-agnostic renderer and first-class addon flow.
+category: platform
+observability:
+  package: observability-pack
+  versionRange: ">=0.1.0 <2.0.0"

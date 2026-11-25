@@ -1,0 +1,23 @@
+{
+  "schema": "inari.compat.v1",
+  "entries": [
+    {
+      "server": "0.8.0-f224904",
+      "ui": "2.1.1",
+      "uiHostSha": "e2562aff1e23fb61cba41d378147a2f508b505d3",
+      "pluginSdk": "v1.2.1-f3f52e4",
+      "pluginSdkSha": "f3f52e4ae28987e04ff25dc8e5e179ba69b411e2",
+      "pluginContracts": ["inari.plugin.v1"],
+      "uiHostApis": ["inari.ui.v1"]
+    },
+    {
+      "server": "0.7.0-f0bdbad",
+      "ui": "2.0.0",
+      "uiHostSha": "dc4000cc1df60c8c65d25f28aca89f1878a111d9",
+      "pluginSdk": "v1.2.1-e92d21a",
+      "pluginSdkSha": "e92d21a143c21d4fa50b9da1150ff8e6b089c999",
+      "pluginContracts": ["inari.plugin.v1"],
+      "uiHostApis": ["inari.ui.v1"]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+# Changelog
+
+## [1.0.0](https://github.com/7K-Inari/inari-ext-argocd/compare/v0.3.1...v1.0.0) (2026-11-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* migrate to connect-go v2 ([#72](https://github.com/7K-Inari/inari-ext-argocd/issues/72))
+
+### Features
+
+* **agentstub:** signal re-auth on downstream 401/403 ([81ee628](https://github.com/7K-Inari/inari-ext-argocd/commit/81ee628990893bec839e5c4e76a0d3fbf98ccc70))
+* **extplugin:** declare oidc-sso-session auth; forward per-user token; typed re-auth ([1aca8f3](https://github.com/7K-Inari/inari-ext-argocd/commit/1aca8f33b8ae0f3207d7c509b04d9e9edc0d8ae5))
+* **gateway:** forward per-user credential as hop metadata; gate legacy token off by default ([1dca4ee](https://github.com/7K-Inari/inari-ext-argocd/commit/1dca4eee9970ab316cac2f6adef2a4daaf6c2fd8))
+* **http:** forward host-injected credentials; typed re-auth signal in dial mode ([5d544a0](https://github.com/7K-Inari/inari-ext-argocd/commit/5d544a04df436a6c2e7e4f7f7a03a26e328afc7c))
+* migrate to connect-go v2 ([#72](https://github.com/7K-Inari/inari-ext-argocd/issues/72)) ([893aaae](https://github.com/7K-Inari/inari-ext-argocd/commit/893aaae665b20f685ba31f6c514551156658aff5))
+* per-user OIDC SSO sessions for ArgoCD extension (W4) ([9a1f10e](https://github.com/7K-Inari/inari-ext-argocd/commit/9a1f10e794824da74014c564410ee2e0def98afe))
+* **release:** per-merge edge releases (vX.Y.Z-&lt;sha&gt; + moving edge channel) ([#19](https://github.com/7K-Inari/inari-ext-argocd/issues/19)) ([d16932a](https://github.com/7K-Inari/inari-ext-argocd/commit/d16932ab17d232b1281c797d086677dc718ca7c8))
+* **ui:** re-skin extension slots with 7k-design-system classes ([c19b1ad](https://github.com/7K-Inari/inari-ext-argocd/commit/c19b1ade9f7228a3a674281f6a8f58423e77e25f))
+
+
+### Bug Fixes
+
+* case-insensitive Bearer scheme stripping; document 403 re-auth rationale ([485511a](https://github.com/7K-Inari/inari-ext-argocd/commit/485511a6a23e9929b0bd3f6d943cf4a26fd1b70d))
+* **ci:** drop root component so standalone root releases are detected ([f87ec28](https://github.com/7K-Inari/inari-ext-argocd/commit/f87ec28864dae8478f454c3227c4cf3400fc195d))
+* **ci:** drop root component so standalone root releases are detected ([b086355](https://github.com/7K-Inari/inari-ext-argocd/commit/b08635560dcb4239ec3790a7837929f9dd44c319))
+* fail closed on scheme-only downstream credential ([4d87034](https://github.com/7K-Inari/inari-ext-argocd/commit/4d87034484c76b1f1768af81a64f0c8372a20a41))
+
+## [0.3.1](https://github.com/7K-Inari/inari-ext-argocd/compare/v0.3.0...v0.3.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **ci:** repair backend image publish in release workflow ([db90785](https://github.com/7K-Inari/inari-ext-argocd/commit/db9078534483055d91d14a87a78949250c4ca10c))
+* **ci:** repair backend image publish in release workflow ([1bae949](https://github.com/7K-Inari/inari-ext-argocd/commit/1bae94934e185f3bee3981ec147ba85309ea1d89))
+
+## [0.3.0](https://github.com/7K-Inari/inari-ext-argocd/compare/v0.2.0...v0.3.0) (2026-09-24)
+
+
+### Features
+
+* dial-mode HTTP command for the extension host proxy ([cd8946b](https://github.com/7K-Inari/inari-ext-argocd/commit/cd8946bfd31ee17e16be3be7696a0278f93e2c3c))
+* **gateway:** send x-inari-extension-token gate token when configured ([fc4c539](https://github.com/7K-Inari/inari-ext-argocd/commit/fc4c5399b0ecc381376d352e10980ead496a50f6))
+* **http:** INARI_COMPAT_API_VERSION override for pre-fix servers ([73a8da0](https://github.com/7K-Inari/inari-ext-argocd/commit/73a8da0d2fe31633a13c154fd8d24403ad9ddd81))
+
+
+### Bug Fixes
+
+* populate InvokeAction.Resource (agent resolves the Application from it) ([72a68ea](https://github.com/7K-Inari/inari-ext-argocd/commit/72a68ea35c8c8658f686de9dd50e3e19b9889fd9))
+* rollback param as bare id (real agent contract); stub accepts id with revisionId fallback ([27730d0](https://github.com/7K-Inari/inari-ext-argocd/commit/27730d07965c6d9be070cd8bfa1aed53d5567b27))
+* tunnel bare agent verbs (sync|refresh|rollback) instead of namespaced actions ([0de28be](https://github.com/7K-Inari/inari-ext-argocd/commit/0de28be1da0cc8e7c63011a84bf870354d7084f0))
+* **ui:** correct SDK share name, shell bearer auth, richer cluster tab ([#13](https://github.com/7K-Inari/inari-ext-argocd/issues/13)) ([b3cfd64](https://github.com/7K-Inari/inari-ext-argocd/commit/b3cfd646acb998cfa8c95fac7f87831936698bf3))
+* **ui:** tenant-scoped instances path (was hardcoded /api/v1/resources → 404) ([682964b](https://github.com/7K-Inari/inari-ext-argocd/commit/682964ba3f7738499627195f47a2b873da235e39))
+
+## [0.2.0](https://github.com/7K-Inari/inari-ext-argocd/compare/v0.1.1...v0.2.0) (2026-08-21)
+
+
+### Features
+
+* add ArgoCD backend extension with fail-closed agent gateway tunnel ([9489dd3](https://github.com/7K-Inari/inari-ext-argocd/commit/9489dd3c7c14d34f2b20b42a0ef45588af5ff891))
+* ArgoCD reference extension (backend plugin, UI remote, e2e) ([7a16d76](https://github.com/7K-Inari/inari-ext-argocd/commit/7a16d76490ff82f86340a110deaec3dd97f5b3c7))
+* **ui:** add ArgoCD Module Federation remote with blueprint slots ([e6b1cd1](https://github.com/7K-Inari/inari-ext-argocd/commit/e6b1cd1fc91ede435900fb4ec1f46477fb70408d))
+
+
+### Bug Fixes
+
+* **ui:** copy only published file set when vendoring UI SDK build ([a9d2477](https://github.com/7K-Inari/inari-ext-argocd/commit/a9d2477cf7bdffa73e79c173b225f0b6bf17cfbd))
+
+## [0.1.1](https://github.com/7K-Inari/inari-ext-argocd/compare/v0.1.0...v0.1.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **ci:** detect release-please merges made with merge commits ([a189391](https://github.com/7K-Inari/inari-ext-argocd/commit/a1893917f963299dc4c7a3745996f18ea15494df))

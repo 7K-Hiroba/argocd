@@ -1,0 +1,24 @@
+groups:
+  - name: argocd-applications
+    interval: 1m
+    rules:
+      - record: argocd:applications:degraded
+        expr: sum by(org,cluster,job,instance,namespace,health_status,sync_status)(argocd_app_info{health_status="Degraded"})
+      - alert: ArgoCDApplicationDegraded
+        expr: argocd:applications:degraded > 0
+        for: 5m
+        labels:
+          severity: critical
+          app: argocd
+        annotations:
+          summary: One or more Argo CD applications are Degraded
+      - record: argocd:applications:out_of_sync
+        expr: sum by(org,cluster,job,instance,namespace,health_status,sync_status)(argocd_app_info{sync_status!="Synced"})
+      - alert: ArgoCDApplicationOutOfSync
+        expr: argocd:applications:out_of_sync > 0
+        for: 5m
+        labels:
+          severity: critical
+          app: argocd
+        annotations:
+          summary: One or more Argo CD applications are out of sync

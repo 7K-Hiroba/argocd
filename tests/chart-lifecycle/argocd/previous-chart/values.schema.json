@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["argo-cd", "observability"],
+  "additionalProperties": false,
+  "properties": {
+    "argo-cd": {
+      "type": "object",
+      "description": "Values forwarded unchanged to the locked upstream argo-cd chart. See https://github.com/argoproj/argo-helm/tree/argo-cd-7.6.12/charts/argo-cd/values.yaml"
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "rules"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {"enabled": {"type": "boolean"}}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "title": "Argo CD overview",
+  "uid": "argocd-overview",
+  "schemaVersion": 40,
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "textbox",
+        "value": "argocd"
+      },
+      {
+        "name": "DS_PROMETHEUS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {"text": "Prometheus", "value": "prometheus"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Degraded applications",
+      "description": "Applications reporting Degraded health in the selected namespace.",
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {"refId": "A", "expr": "sum by(namespace)(argocd_app_info{namespace=\"$namespace\",health_status=\"Degraded\"})"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Out-of-sync applications",
+      "description": "Applications not reporting Synced status in the selected namespace.",
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {"refId": "A", "expr": "sum by(namespace)(argocd_app_info{namespace=\"$namespace\",sync_status!=\"Synced\"})"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    }
+  ]
+}

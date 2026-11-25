@@ -1,0 +1,6 @@
+# HELP argocd_app_info Argo CD application health and sync metadata.
+# TYPE argocd_app_info gauge
+argocd_app_info{job="argocd",instance="ci",namespace="argocd",health_status="Degraded",sync_status="OutOfSync"} 1
+# HELP argocd_cluster_connection_status Argo CD cluster connection status.
+# TYPE argocd_cluster_connection_status gauge
+argocd_cluster_connection_status{job="argocd-server",instance="ci"} 0

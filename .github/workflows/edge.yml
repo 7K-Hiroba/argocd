@@ -1,0 +1,9 @@
+name: edge
+on: {push: {branches: [main]}}
+permissions: {contents: read}
+concurrency: {group: "hiroba-release-${{ github.repository }}", cancel-in-progress: false}
+jobs:
+  edge:
+    uses: 7K-Hiroba/workflows/.github/workflows/edge.yml@77fac4b056ec7d97fb6cd64860f8922fa0931024 # v2.1.0
+    with: {root: .}
+    permissions: {contents: write, packages: write, id-token: write, attestations: write, actions: read, artifact-metadata: write}

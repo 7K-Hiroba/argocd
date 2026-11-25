@@ -1,0 +1,25 @@
+schema: inari.hiroba.app.v2
+app: argocd
+archetype: non-stack
+trustTier: reviewed
+components:
+  extension: {path: extension, version: 0.1.1}
+  ui: {path: ui, version: 0.3.0}
+  chartsRoot: charts
+  packagesRoot: packages
+  templatesRoot: templates
+observability:
+  path: observability
+  chart: charts/argocd
+  package: packages/observability-pack
+  alloyConfig: observability/tests/alloy/config.river
+smoke:
+  path: tests/smoke
+  targetComponent: charts/argocd
+compatibility:
+  matrix: ci/compatibility-matrix.json
+releaseComponents:
+  packages/argocd: package-argocd
+  templates/argocd-application: template-argocd-application
+  charts/argocd: chart-argocd
+  packages/observability-pack: package-observability-pack

@@ -1,0 +1,4 @@
+{
+  "journey": "argocd-health-and-version",
+  "expected": {"health": "ok", "versionField": "Version"}
+}

@@ -1,0 +1,48 @@
+apiVersion: inari.io/v1alpha1
+kind: Extension
+metadata:
+  name: inari-ext-argocd
+spec:
+  version: "0.1.1" # x-release-please-version
+  kinds: [backend, ui]
+  backend:
+    image: ghcr.io/7k-hiroba/argocd/extension
+    digestPinning: required
+    actions:
+      - argocd.sync
+      - argocd.refresh
+      - argocd.rollback
+      - argocd.resource-action
+    env:
+      - name: INARI_AGENT_GATEWAY_URL
+        description: Absolute control-plane HTTP(S) URL used by the public Agent Gateway client.
+      - name: INARI_EXTENSION_CLIENT_ID
+        description: Dedicated extension client ID returned by registration or rotation.
+      - name: INARI_EXTENSION_CLIENT_SECRET
+        description: One-time extension client secret supplied through deployment secret machinery.
+      - name: INARI_EXTENSION_TOKEN_URL
+        description: OIDC client-credentials token endpoint for the dedicated extension identity.
+      - name: INARI_MANAGED_PROJECTS
+        value: inari
+      - name: INARI_ACTION_TIMEOUT
+        value: 60s
+  ui:
+    remoteEntryOci: ghcr.io/7k-hiroba/argocd/extension-ui
+    slots:
+      - { kind: cluster-tab, name: argocd-health }
+      - { kind: catalog-card, name: argocd-badge }
+      - { kind: instance-action, name: argocd-sync }
+      - { kind: instance-action, name: argocd-refresh }
+      - { kind: instance-action, name: argocd-rollback }
+  contracts:
+    backend: [inari.plugin.v1]
+    ui:
+      sdk: ">=0.1.9 <2.0.0"
+      hostApi: inari.ui.v1
+  auth:
+    methods:
+      - type: oidc-sso-session
+        audience: argocd
+        isDefault: true
+  permissions:
+    - extensions:invoke:inari-ext-argocd
