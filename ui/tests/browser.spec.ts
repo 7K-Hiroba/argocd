@@ -86,7 +86,10 @@ async function assertActionSuccess(
   const origin = await page.evaluate(() => window.location.origin);
   expect(request).toEqual({ url: `${origin}${path}`, method: 'POST', payload });
   await expect(page.getByRole('button', { name: label, exact: true })).toBeEnabled();
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  // Hosts render informational alerts on the instance page (for example the Phase-3
+  // workflow-render stop notice and unsigned-observability-metadata notice); only the
+  // host's danger-styled alerts indicate an action failure.
+  await expect(page.locator('[role="alert"].u-danger')).toHaveCount(0);
 }
 
 let pageErrors: string[];
