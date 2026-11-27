@@ -15,12 +15,12 @@
 
 - [x] Exact candidate SHAs recorded in `docs/dependencies.md`.
 - [x] Release train reports exact merged main/signed-release SHAs; candidate pins revalidated/replaced without marking candidates as merged.
-- [x] Final workflow SHA is signed R `77fac4b056ec7d97fb6cd64860f8922fa0931024` (`v2.1.0`, protected run 45490115693), not an open PR head.
+- [x] Final workflow SHA is signed R `c2432e1b186987ffdaa97f99b31b89b073c7a47e` (`v2.1.1`, protected run 45665644269), not an open PR head.
 
 ## Required acceptance evidence still open
 
 - [x] Hosted PR backend compatibility lanes pass at migration head `31ae2f8` (run 45303387570).
-- [ ] Nightly backend/browser edge compatibility passes after the workflow is available on `main`; this remains an explicit post-merge gate.
+- [x] Nightly backend/browser edge compatibility passed at baseline main `d2fbac0b6d9b45d46cc3961ea71882a22869ce46` with all five slots (run 45613862426; verified artifact 15021861549). Future Release PR heads require fresh evidence.
 - [x] Hosted browser slot coverage passes all five slots (run 45303387570).
 - [x] Hosted KRO, chart install, and actual Argo CD runtime smoke lanes pass (runs 45303387750, 45303387571 attempt 2, and 45303387656).
 - [ ] Stable signed artifacts have cosign/digest/SLSA/test-evidence verification receipts.
