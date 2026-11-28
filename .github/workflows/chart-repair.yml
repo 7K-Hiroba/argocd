@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {path: consumer, fetch-depth: 0}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with: {repository: 7K-Hiroba/workflows, ref: c2432e1b186987ffdaa97f99b31b89b073c7a47e, path: .hiroba/workflows} # v2.1.1
+        with: {repository: 7K-Hiroba/workflows, ref: e105f9c1dd3b305b2141be37ccc773683992f67a, path: .hiroba/workflows} # v2.1.2
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with: {python-version: "3.11"}
       - run: pip install --requirement .hiroba/workflows/requirements-dev.txt
@@ -34,7 +34,7 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
   repair:
     needs: resolve
-    uses: 7K-Hiroba/workflows/.github/workflows/release-chart.yml@c2432e1b186987ffdaa97f99b31b89b073c7a47e # v2.1.1
+    uses: 7K-Hiroba/workflows/.github/workflows/release-chart.yml@e105f9c1dd3b305b2141be37ccc773683992f67a # v2.1.2
     with:
       root: .
       chart: "${{ inputs.chart }}"

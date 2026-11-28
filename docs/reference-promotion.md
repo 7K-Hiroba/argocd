@@ -15,7 +15,7 @@
 
 - [x] Exact candidate SHAs recorded in `docs/dependencies.md`.
 - [x] Release train reports exact merged main/signed-release SHAs; candidate pins revalidated/replaced without marking candidates as merged.
-- [x] Final workflow SHA is signed R `c2432e1b186987ffdaa97f99b31b89b073c7a47e` (`v2.1.1`, protected run 45665644269), not an open PR head.
+- [x] Final workflow SHA is signed R `e105f9c1dd3b305b2141be37ccc773683992f67a` (`v2.1.2`, protected run 46163314451 attempt 1), not an open PR head.
 
 ## Required acceptance evidence still open
 
@@ -25,6 +25,7 @@
 - [x] Hosted KRO, chart install, and actual Argo CD runtime smoke lanes pass (runs 45303387750, 45303387571 attempt 2, and 45303387656).
 - [ ] Stable signed artifacts have cosign/digest/SLSA/test-evidence verification receipts.
 - [ ] Exact artifacts admit through trusted source sync and deploy/render/suite admission, including negative checks.
+- [ ] **D4/stable blocker (W6):** at main `65eb8c1991c843044029f5390e7fab57353afa79`, the ArgoCD suite selects `WorkflowTemplate metadata.namespace=default`, uses default-namespace readiness/service DNS and `--location --insecure`, while the deployed target namespace is `argocd`; inari-server rejects any suite-selected WorkflowTemplate namespace. A reviewed Spec amendment/new owning task is required to remove suite-owned namespace selection, correct service/readiness and TLS/redirect behavior, sign a new exact suite, and prove non-production static/admission behavior. The final-R adoption does not patch runtime or `tests/smoke`.
 - [ ] SDK-only clean build is re-run at the final head.
 - [ ] Sibling Phase 3 is independently confirmed.
 - [ ] Central and local companions render through reviewed baselines and target-side verification produces readiness-gated links.

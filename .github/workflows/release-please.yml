@@ -3,7 +3,7 @@ on: {push: {branches: [main]}}
 permissions: {contents: read}
 jobs:
   propose:
-    uses: 7K-Hiroba/workflows/.github/workflows/release-please.yml@c2432e1b186987ffdaa97f99b31b89b073c7a47e # v2.1.1
+    uses: 7K-Hiroba/workflows/.github/workflows/release-please.yml@e105f9c1dd3b305b2141be37ccc773683992f67a # v2.1.2
     with: {root: ., app-id: "${{ vars.HIROBA_RELEASE_APP_ID }}"}
     secrets:
       release-private-key: "${{ secrets.HIROBA_RELEASE_PRIVATE_KEY }}"
