@@ -14,7 +14,7 @@ import { runRefresh, runRollback, runSync } from './actions';
 export default createExtension({
   manifest: {
     name: 'inari-ext-argocd',
-    version: '0.3.0', // x-release-please-version
+    version: '0.3.1', // x-release-please-version
     kind: 'ui',
     title: 'ArgoCD',
     description: 'ArgoCD health, status badges, and imperative GitOps actions (sync/refresh/rollback).',
