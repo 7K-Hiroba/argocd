@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.1](https://github.com/7K-Hiroba/argocd/compare/ui-v0.3.0...ui-v0.3.1) (2026-11-28)
+
+
+### Features
+
+* migrate ArgoCD to the standalone application architecture ([fbb37d3](https://github.com/7K-Hiroba/argocd/commit/fbb37d35d796d6943fbcbdf9c4a9ae4b6fff34af))
+
+
+### Bug Fixes
+
+* address migration review findings ([56f5b93](https://github.com/7K-Hiroba/argocd/commit/56f5b93c5ea022a029bae21158ef07255bde520f))
+* assert only danger alerts after browser actions ([d2fbac0](https://github.com/7K-Hiroba/argocd/commit/d2fbac0b6d9b45d46cc3961ea71882a22869ce46))
+* assert only danger alerts after browser actions ([42a74be](https://github.com/7K-Hiroba/argocd/commit/42a74becd33b738c9725caa14269a8e69e978e19))
+* isolate tenant inventory and bound action bodies ([1b4ca4b](https://github.com/7K-Hiroba/argocd/commit/1b4ca4b6d7c7888c86fb3e451c881caa1619b50c))
+
 ## [0.3.0](https://github.com/7K-Inari/inari-ext-argocd/compare/ui-v0.2.1...ui-v0.3.0) (2026-11-13)
 
 

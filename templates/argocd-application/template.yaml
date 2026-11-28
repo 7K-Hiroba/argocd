@@ -1,5 +1,5 @@
 name: argocd-application
-version: 0.1.0
+version: 0.1.1
 channel: incubating
 description: Scaffold a reviewed native ArgoCD Application manifest without deploying it
 kind: component

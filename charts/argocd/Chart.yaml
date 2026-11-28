@@ -2,9 +2,9 @@ apiVersion: v2
 name: argocd
 description: Argo CD with Inari observability metadata and optional generated resources
 type: application
-version: 0.1.0
-appVersion: "v2.12.6"
-kubeVersion: ">=1.25.0-0"
+version: 0.1.1
+appVersion: v2.12.6
+kubeVersion: '>=1.25.0-0'
 home: https://github.com/argoproj/argo-cd
 sources:
   - https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd

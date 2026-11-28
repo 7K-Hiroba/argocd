@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 channel: incubating
 type: kro-rgd
 description: Generated central/local observability companion for Argo CD

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.2](https://github.com/7K-Hiroba/argocd/compare/extension-v0.1.1...extension-v0.1.2) (2026-11-28)
+
+
+### Features
+
+* configure public Agent Gateway clients ([7d6b12f](https://github.com/7K-Hiroba/argocd/commit/7d6b12fdb275ffd084510287860b2733e25a305b))
+* migrate ArgoCD to the standalone application architecture ([fbb37d3](https://github.com/7K-Hiroba/argocd/commit/fbb37d35d796d6943fbcbdf9c4a9ae4b6fff34af))
+
+
+### Bug Fixes
+
+* address migration review findings ([56f5b93](https://github.com/7K-Hiroba/argocd/commit/56f5b93c5ea022a029bae21158ef07255bde520f))
+* declare direct OAuth dependency and bound workaround scans ([e317b6a](https://github.com/7K-Hiroba/argocd/commit/e317b6ad7c8a9b48a40ab98a3781f10e179064e0))
+* isolate tenant inventory and bound action bodies ([1b4ca4b](https://github.com/7K-Hiroba/argocd/commit/1b4ca4b6d7c7888c86fb3e451c881caa1619b50c))
+
 ## [1.0.0](https://github.com/7K-Inari/inari-ext-argocd/compare/v0.3.1...v1.0.0) (2026-11-13)
 
 
