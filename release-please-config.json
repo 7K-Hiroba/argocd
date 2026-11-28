@@ -14,7 +14,8 @@
       "extra-files": [
         "Chart.yaml"
       ],
-      "component": "chart-argocd"
+      "component": "chart-argocd",
+      "include-v-in-tag": false
     },
     "packages/argocd": {
       "release-type": "simple",
@@ -24,7 +25,8 @@
       "extra-files": [
         "package.yaml"
       ],
-      "component": "package-argocd"
+      "component": "package-argocd",
+      "include-v-in-tag": false
     },
     "templates/argocd-application": {
       "release-type": "simple",
@@ -34,7 +36,8 @@
       "extra-files": [
         "template.yaml"
       ],
-      "component": "template-argocd-application"
+      "component": "template-argocd-application",
+      "include-v-in-tag": false
     },
     "extension": {
       "release-type": "go",
@@ -42,14 +45,19 @@
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "extra-files": [
-        "../extension.yaml",
+        {
+          "type": "generic",
+          "path": "/extension.yaml"
+        },
         "internal/extplugin/version.go",
         {
           "type": "yaml",
           "path": "/.hiroba.yaml",
           "jsonpath": "$.components.extension.version"
         }
-      ]
+      ],
+      "component": "extension",
+      "include-v-in-tag": false
     },
     "packages/observability-pack": {
       "release-type": "simple",
@@ -59,7 +67,8 @@
       "extra-files": [
         "package.yaml"
       ],
-      "component": "package-observability-pack"
+      "component": "package-observability-pack",
+      "include-v-in-tag": false
     },
     "ui": {
       "release-type": "node",
@@ -73,7 +82,9 @@
           "path": "/.hiroba.yaml",
           "jsonpath": "$.components.ui.version"
         }
-      ]
+      ],
+      "component": "ui",
+      "include-v-in-tag": false
     }
   }
 }

@@ -3,14 +3,14 @@ set -euo pipefail
 
 FIXTURE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$FIXTURE/../../.." && pwd)
-WF=${WF:?WF must identify the exact signed workflows v2.1.1 checkout}
+WF=${WF:?WF must identify the exact signed workflows v2.1.2 checkout}
 WF=$(cd "$WF" && pwd)
 HELM=${HELM:?HELM must identify the checksum-verified pinned Helm binary}
 HELM=$(realpath "$(command -v "$HELM")")
 PYTHON=${PYTHON:-python3}
 EXPECTED_VERSION=$(jq -r .tools.helm.version "$WF/pins/stack-testing.json")
 EXPECTED_ARCHIVE=$(jq -r .tools.helm.sha256 "$WF/pins/stack-testing.json")
-WORKFLOW_SHA=c2432e1b186987ffdaa97f99b31b89b073c7a47e
+WORKFLOW_SHA=e105f9c1dd3b305b2141be37ccc773683992f67a
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/helm-plugins" "$WORK/repository-cache"
@@ -61,7 +61,7 @@ document = {
         "workflowSha": sys.argv[4],
         "sourceFileMtimes": "unix-epoch",
         "archiveCanonicalization": "sorted members, normalized tar metadata, zero gzip mtime",
-        "command": "WF=<signed-R-v2.1.1-checkout> PYTHON=<workflow-python> HELM=<checksum-verified-pinned-helm> ./generate.sh",
+        "command": "WF=<signed-R-v2.1.2-checkout> PYTHON=<workflow-python> HELM=<checksum-verified-pinned-helm> ./generate.sh",
     },
     "packages": packages,
 }
